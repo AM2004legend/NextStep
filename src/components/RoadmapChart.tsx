@@ -64,7 +64,7 @@ export const RoadmapChart: React.FC<RoadmapChartProps> = ({ milestones, title, d
               tick={{ fontSize: 12 }} 
             />
             <YAxis hide={true} domain={[0, 1]}/>
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent) / 0.2)' }}/>
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent))' }}/>
             <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
