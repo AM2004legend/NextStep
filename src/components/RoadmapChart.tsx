@@ -21,12 +21,15 @@ interface RoadmapChartProps {
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const labelPrefix = data.month ? 'Month' : 'Quarter';
+    const labelValue = data.month || data.quarter;
+    
     return (
-      <div className="bg-background border border-border p-3 rounded-lg shadow-lg max-w-sm">
-        <p className="font-bold text-lg mb-2">{`${data.title}`}</p>
-        <ul className="list-disc pl-5 space-y-1">
+      <div className="bg-background border border-border p-4 rounded-lg shadow-lg max-w-sm text-sm">
+        <p className="font-bold text-base mb-2">{`${labelPrefix} ${labelValue}: ${data.title}`}</p>
+        <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
           {data.tasks.map((task: string, index: number) => (
-            <li key={index} className="text-sm">{task}</li>
+            <li key={index}>{task}</li>
           ))}
         </ul>
       </div>
@@ -39,7 +42,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
 
 export const RoadmapChart: React.FC<RoadmapChartProps> = ({ milestones, title, description, dataKey }) => {
   const chartData = milestones.map(m => ({
-    name: dataKey === 'month' ? `Month ${m.month}` : `Quarter ${m.quarter}`,
+    name: dataKey === 'month' ? `Month ${m.month}` : `Q${m.quarter}`,
     value: 1, // All bars have the same height
     ...m
   }));
@@ -52,7 +55,7 @@ export const RoadmapChart: React.FC<RoadmapChartProps> = ({ milestones, title, d
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={150}>
-          <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} barCategoryGap="20%">
+          <BarChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }} barCategoryGap="20%">
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis 
               dataKey="name"
