@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, type FC } from 'react';
+import React, { useState, useTransition, type FC } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -331,7 +331,7 @@ export default function Home() {
                 </TabsList>
                 
                 <TabsContent value="my-path" className="mt-8">
-                  <div className="flex flex-col">
+                  <React.Fragment>
                     <Section icon={<GraduationCap />} title="Build Your Profile" description="Tell us about yourself so our AI can understand your unique strengths and aspirations." step={1}>
                       <Card>
                         <CardContent className="pt-6">
@@ -468,11 +468,11 @@ export default function Home() {
                         </Accordion>
                       </Section>
                     )}
-                  </div>
+                  </React.Fragment>
                 </TabsContent>
 
                 <TabsContent value="explore" className="mt-8">
-                  <div className="flex flex-col">
+                  <React.Fragment>
                     <Section icon={<Compass />} title="Career Explorer" description="Not sure where to start? Enter some interests and skills to explore potential career paths.">
                       <Card>
                         <CardContent className="pt-6">
@@ -545,7 +545,7 @@ export default function Home() {
                         </Card>
                       </Section>
                     )}
-                  </div>
+                  </React.Fragment>
                 </TabsContent>
               </Tabs>
             </TabsContent>
@@ -558,5 +558,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
