@@ -23,15 +23,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
-const RoadmapChart = dynamic(() => import('@/components/RoadmapChart').then(mod => mod.RoadmapChart), {
-  ssr: false,
-  loading: () => <div className="w-full h-[150px]"><Skeleton className="h-full w-full" /></div>
-});
+import { Flowchart } from '@/components/Flowchart';
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -304,12 +298,11 @@ export default function Home() {
               {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
               {schoolRoadmap && (
-                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual roadmap and detailed plan for your college entrance preparation.">
-                  <RoadmapChart 
-                    milestones={schoolRoadmap.milestones} 
+                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation.">
+                  <Flowchart
                     title="College Prep Timeline"
                     description="A quarterly guide to your success."
-                    dataKey="quarter"
+                    milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title}))}
                   />
                   <Accordion type="single" collapsible className="w-full mt-4">
                     {schoolRoadmap.milestones.map((milestone) => (
@@ -451,13 +444,12 @@ export default function Home() {
 
                       {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
-                      {roadmap && (
-                          <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap and detailed plan. Expand each month to see the specific tasks." step={4}>
-                              <RoadmapChart 
-                                milestones={roadmap.milestones}
+                      {roadmap && selectedCareer && (
+                          <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual flowchart and detailed plan. Expand each month to see the specific tasks." step={4}>
+                              <Flowchart
                                 title={`Roadmap to ${selectedCareer}`}
                                 description="A monthly guide to your success."
-                                dataKey="month"
+                                milestones={roadmap.milestones.map(m => ({ label: `Month ${m.month}`, title: m.title}))}
                               />
                               <Accordion type="single" collapsible className="w-full mt-4">
                                 {roadmap.milestones.map((milestone) => (
