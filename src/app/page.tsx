@@ -206,7 +206,9 @@ export default function Home() {
         {step && <p className="text-sm font-semibold text-primary">STEP {step}</p>}
         <h2 className="text-2xl font-bold tracking-tight mb-1 font-headline">{title}</h2>
         <p className="text-muted-foreground mb-4">{description}</p>
-        {children}
+        <div className="space-y-4">
+          {children}
+        </div>
       </div>
     </div>
   );
