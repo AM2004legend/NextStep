@@ -22,7 +22,7 @@ const GenerateRoadmapInputSchema = z.object({
 export type GenerateRoadmapInput = z.infer<typeof GenerateRoadmapInputSchema>;
 
 const GenerateRoadmapOutputSchema = z.object({
-  roadmap: z.string().describe('A 6-12 month actionable roadmap detailing steps, resources, and milestones.'),
+  roadmap: z.string().describe('A 6-12 month actionable roadmap in Mermaid flowchart syntax.'),
 });
 export type GenerateRoadmapOutput = z.infer<typeof GenerateRoadmapOutputSchema>;
 
@@ -37,15 +37,17 @@ const prompt = ai.definePrompt({
   prompt: `You are a career coach expert in the Indian and global job markets.
 
   Based on the student profile, chosen career path, current skills, and identified skill gaps, generate a 6-12 month actionable roadmap for the student.
-  The roadmap should detail specific steps, resources (courses, certifications, projects), and milestones.
-  Consider the Indian and global job market when creating the roadmap.
+  The roadmap should be a flowchart in Mermaid syntax.
+  The flowchart should detail specific steps, resources (courses, certifications, projects), and milestones.
+  Use subgraphs for different phases (e.g., Month 1-3, Month 4-6).
+  Each node in the flowchart should represent a specific action or milestone.
 
   Student Profile: {{{studentProfile}}}
   Career Path: {{{careerPath}}}
   Current Skills: {{{currentSkills}}}
   Skill Gaps: {{{skillGaps}}}
 
-  Roadmap:
+  Mermaid Roadmap:
 `,
 });
 

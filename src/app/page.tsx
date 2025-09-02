@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
-import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { MermaidRenderer } from '@/components/MermaidRenderer';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -204,7 +204,7 @@ export default function Home() {
       </div>
       <div className="flex-1 pb-8">
         {step && <p className="text-sm font-semibold text-primary">STEP {step}</p>}
-        <h2 className="text-2xl font-semibold tracking-tight mb-1 font-headline">{title}</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-1 font-headline">{title}</h2>
         <p className="text-muted-foreground mb-4">{description}</p>
         <div className="space-y-4">
           {children}
@@ -218,7 +218,7 @@ export default function Home() {
       <header className="p-4 border-b">
         <div className="max-w-6xl mx-auto flex items-center gap-2">
           <Logo className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-semibold text-gray-800 font-headline">NextStep</h1>
+          <h1 className="text-2xl font-semibold font-headline">NextStep</h1>
         </div>
       </header>
       <main className="flex-1">
@@ -289,11 +289,12 @@ export default function Home() {
                   </CardContent>
                 </Card>
               </Section>
+              {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
               {schoolRoadmap && (
-                  <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Follow this interactive roadmap to prepare for your college entrance exams and applications.">
+                  <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is a visual roadmap for your college entrance preparation.">
                       <Card>
                           <CardContent className="pt-6">
-                              <MarkdownRenderer content={schoolRoadmap.roadmap} />
+                              <MermaidRenderer chart={schoolRoadmap.roadmap} />
                           </CardContent>
                       </Card>
                   </Section>
@@ -301,7 +302,7 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="college" className="mt-6">
-                <Tabs defaultValue="my-path">
+                <Tabs defaultValue="my-path" className="w-full">
                   <TabsList className="grid w-full grid-cols-2 bg-primary/10">
                     <TabsTrigger value="my-path" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">My Career Path</TabsTrigger>
                     <TabsTrigger value="explore" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Explore Careers</TabsTrigger>
@@ -375,6 +376,8 @@ export default function Home() {
                       </Card>
                     </Section>
                     
+                    {isRecsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+
                     {recommendations && (
                       <Section icon={<Compass />} title="Choose Your Path" description="Here are some career paths that align with your profile. Select one to explore further." step={2}>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -388,6 +391,8 @@ export default function Home() {
                           </div>
                       </Section>
                     )}
+
+                    {isGapsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
                     {skillGaps && selectedCareer && (
                       <Section icon={<Target />} title="Analyze Your Skill Gaps" description={`For a career in ${selectedCareer}, here are the skills you should focus on developing.`} step={3}>
@@ -415,11 +420,13 @@ export default function Home() {
                       </Section>
                     )}
 
+                    {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+
                     {roadmap && (
-                        <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Follow this interactive roadmap to gain the skills you need. Check off items as you complete them." step={4}>
+                        <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap to gain the skills you need." step={4}>
                             <Card>
                                 <CardContent className="pt-6">
-                                    <MarkdownRenderer content={roadmap.roadmap} />
+                                    <MermaidRenderer chart={roadmap.roadmap} />
                                 </CardContent>
                             </Card>
                         </Section>
@@ -427,12 +434,9 @@ export default function Home() {
                   </TabsContent>
 
                   <TabsContent value="explore" className="mt-6">
+                  <Section icon={<Compass />} title="Career Explorer" description="Not sure where to start? Enter some interests and skills to explore potential career paths.">
                     <Card>
-                      <CardHeader>
-                        <CardTitle>Career Explorer</CardTitle>
-                        <CardDescription>Not sure where to start? Enter some interests and skills to explore potential career paths.</CardDescription>
-                      </CardHeader>
-                      <CardContent>
+                      <CardContent className="pt-6">
                         <Form {...explorerForm}>
                           <form onSubmit={explorerForm.handleSubmit(onExplorerSubmit)} className="space-y-6">
                             <div className="grid md:grid-cols-2 gap-6">
@@ -474,16 +478,14 @@ export default function Home() {
                         </Form>
                       </CardContent>
                     </Card>
+                    </Section>
 
                     {isExplorerPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
                     {exploredCareers && (
-                      <Card className="mt-8">
-                        <CardHeader>
-                          <CardTitle>Exploration Results</CardTitle>
-                          <CardDescription>Based on your input, here are some career paths and the skills you'd need to develop.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
+                      <Section icon={<ListTodo />} title="Exploration Results" description="Based on your input, here are some career paths and the skills you'd need to develop.">
+                      <Card>
+                        <CardContent className="space-y-6 pt-6">
                           {exploredCareers.careerPaths.map(path => (
                             <Alert key={path}>
                               <Briefcase className="h-4 w-4" />
@@ -502,6 +504,7 @@ export default function Home() {
                           ))}
                         </CardContent>
                       </Card>
+                      </Section>
                     )}
                   </TabsContent>
                 </Tabs>

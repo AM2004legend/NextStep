@@ -20,7 +20,7 @@ const GenerateSchoolRoadmapInputSchema = z.object({
 export type GenerateSchoolRoadmapInput = z.infer<typeof GenerateSchoolRoadmapInputSchema>;
 
 const GenerateSchoolRoadmapOutputSchema = z.object({
-  roadmap: z.string().describe('A 6-12 month actionable roadmap detailing steps, resources, and milestones for college entrance preparation.'),
+  roadmap: z.string().describe('A 6-12 month actionable roadmap in Mermaid flowchart syntax for college entrance preparation.'),
 });
 export type GenerateSchoolRoadmapOutput = z.infer<typeof GenerateSchoolRoadmapOutputSchema>;
 
@@ -35,12 +35,14 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert academic advisor for high school students aiming for top colleges in India and abroad.
 
   Based on the student's profile and learning style, generate a 6-12 month actionable roadmap for college entrance preparation.
-  The roadmap should detail specific subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), recommended study resources (books, online courses), and a timeline with milestones.
+  The roadmap should be a flowchart in Mermaid syntax.
+  The flowchart should detail specific subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), recommended study resources (books, online courses), and a timeline with milestones.
+  Use subgraphs for different phases (e.g., Quarter 1, Quarter 2).
 
   Student Profile: {{{studentProfile}}}
   Learning Style: {{{learningStyle}}}
 
-  Roadmap:
+  Mermaid Roadmap:
 `,
 });
 
