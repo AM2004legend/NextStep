@@ -19,9 +19,17 @@ const GenerateSchoolRoadmapInputSchema = z.object({
 });
 export type GenerateSchoolRoadmapInput = z.infer<typeof GenerateSchoolRoadmapInputSchema>;
 
-const GenerateSchoolRoadmapOutputSchema = z.object({
-  roadmap: z.string().describe('A 6-12 month actionable roadmap in Mermaid flowchart syntax for college entrance preparation.'),
+const SchoolRoadmapMilestoneSchema = z.object({
+  quarter: z.number().describe("The quarter number for this milestone (e.g., 1 for Quarter 1)."),
+  title: z.string().describe("A short, descriptive title for the milestone (e.g., 'Foundation Building')."),
+  tasks: z.array(z.string()).describe("A list of specific tasks, subjects to focus on, or exams to prepare for."),
 });
+
+
+const GenerateSchoolRoadmapOutputSchema = z.object({
+  milestones: z.array(SchoolRoadmapMilestoneSchema).describe('A list of quarterly milestones for college entrance preparation.'),
+});
+
 export type GenerateSchoolRoadmapOutput = z.infer<typeof GenerateSchoolRoadmapOutputSchema>;
 
 export async function generateSchoolRoadmap(input: GenerateSchoolRoadmapInput): Promise<GenerateSchoolRoadmapOutput> {
@@ -35,14 +43,12 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert academic advisor for high school students aiming for top colleges in India and abroad.
 
   Based on the student's profile and learning style, generate a 6-12 month actionable roadmap for college entrance preparation.
-  The roadmap should be a flowchart in Mermaid syntax, starting with 'flowchart TD'.
-  The flowchart should detail specific subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), recommended study resources (books, online courses), and a timeline with milestones.
-  Use subgraphs for different phases (e.g., subgraph "Quarter 1"... end). Do not use colons in subgraph titles.
-
+  The roadmap should be broken down into quarterly milestones. Each milestone should have a title and a list of specific actions, subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), and recommended study resources (books, online courses).
+  
   Student Profile: {{{studentProfile}}}
   Learning Style: {{{learningStyle}}}
 
-  Mermaid Roadmap:
+  Output the roadmap as a structured JSON object with a list of quarterly milestones.
 `,
 });
 

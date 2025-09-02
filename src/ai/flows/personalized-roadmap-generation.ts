@@ -21,9 +21,17 @@ const GenerateRoadmapInputSchema = z.object({
 });
 export type GenerateRoadmapInput = z.infer<typeof GenerateRoadmapInputSchema>;
 
-const GenerateRoadmapOutputSchema = z.object({
-  roadmap: z.string().describe('A 6-12 month actionable roadmap in Mermaid flowchart syntax.'),
+
+const RoadmapMilestoneSchema = z.object({
+  month: z.number().describe("The month number for this milestone (e.g., 1)."),
+  title: z.string().describe("A short, descriptive title for the milestone."),
+  tasks: z.array(z.string()).describe("A list of specific tasks or actions for this milestone."),
 });
+
+const GenerateRoadmapOutputSchema = z.object({
+  milestones: z.array(RoadmapMilestoneSchema).describe("A list of milestones, ordered chronologically, for a 6-12 month actionable roadmap."),
+});
+
 export type GenerateRoadmapOutput = z.infer<typeof GenerateRoadmapOutputSchema>;
 
 export async function generateRoadmap(input: GenerateRoadmapInput): Promise<GenerateRoadmapOutput> {
@@ -37,17 +45,14 @@ const prompt = ai.definePrompt({
   prompt: `You are a career coach expert in the Indian and global job markets.
 
   Based on the student profile, chosen career path, current skills, and identified skill gaps, generate a 6-12 month actionable roadmap for the student.
-  The roadmap should be a flowchart in Mermaid syntax, starting with 'flowchart TD'.
-  The flowchart should detail specific steps, resources (courses, certifications, projects), and milestones.
-  Use subgraphs for different phases (e.g., subgraph "Month 1-3"... end). Do not use colons in subgraph titles.
-  Each node in the flowchart should represent a specific action or milestone.
-
+  The roadmap should be broken down into monthly milestones. Each milestone should have a title and a list of specific tasks, resources (courses, certifications, projects).
+  
   Student Profile: {{{studentProfile}}}
   Career Path: {{{careerPath}}}
   Current Skills: {{{currentSkills}}}
   Skill Gaps: {{{skillGaps}}}
 
-  Mermaid Roadmap:
+  Output the roadmap as a structured JSON object with a list of milestones.
 `,
 });
 

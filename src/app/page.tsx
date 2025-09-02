@@ -25,11 +25,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
+import { RoadmapChart } from '@/components/RoadmapChart';
 
-const MermaidRenderer = dynamic(() => import('@/components/MermaidRenderer').then(mod => mod.MermaidRenderer), {
-  ssr: false,
-  loading: () => <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
-});
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -300,12 +297,13 @@ export default function Home() {
               {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
               {schoolRoadmap && (
-                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is a visual roadmap for your college entrance preparation.">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <MermaidRenderer chart={schoolRoadmap.roadmap} />
-                    </CardContent>
-                  </Card>
+                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is a visual roadmap for your college entrance preparation. Hover over the chart for details.">
+                   <RoadmapChart 
+                    milestones={schoolRoadmap.milestones} 
+                    title="College Prep Timeline"
+                    description="A quarterly guide to your success."
+                    dataKey="quarter"
+                  />
                 </Section>
               )}
             </TabsContent>
@@ -433,12 +431,13 @@ export default function Home() {
                         {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
                         {roadmap && (
-                            <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap to gain the skills you need." step={4}>
-                                <Card>
-                                    <CardContent className="pt-6">
-                                        <MermaidRenderer chart={roadmap.roadmap} />
-                                    </CardContent>
-                                </Card>
+                            <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap to gain the skills you need. Hover over the chart for details." step={4}>
+                                <RoadmapChart 
+                                  milestones={roadmap.milestones}
+                                  title={`Roadmap to ${selectedCareer}`}
+                                  description="A monthly guide to your success."
+                                  dataKey="month"
+                                />
                             </Section>
                         )}
                     </div>
