@@ -35,9 +35,9 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert academic advisor for high school students aiming for top colleges in India and abroad.
 
   Based on the student's profile and learning style, generate a 6-12 month actionable roadmap for college entrance preparation.
-  The roadmap should be a flowchart in Mermaid syntax.
+  The roadmap should be a flowchart in Mermaid syntax, starting with 'flowchart TD'.
   The flowchart should detail specific subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), recommended study resources (books, online courses), and a timeline with milestones.
-  Use subgraphs for different phases (e.g., Quarter 1, Quarter 2).
+  Use subgraphs for different phases (e.g., subgraph "Quarter 1"... end). Do not use colons in subgraph titles.
 
   Student Profile: {{{studentProfile}}}
   Learning Style: {{{learningStyle}}}

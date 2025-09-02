@@ -37,9 +37,9 @@ const prompt = ai.definePrompt({
   prompt: `You are a career coach expert in the Indian and global job markets.
 
   Based on the student profile, chosen career path, current skills, and identified skill gaps, generate a 6-12 month actionable roadmap for the student.
-  The roadmap should be a flowchart in Mermaid syntax.
+  The roadmap should be a flowchart in Mermaid syntax, starting with 'flowchart TD'.
   The flowchart should detail specific steps, resources (courses, certifications, projects), and milestones.
-  Use subgraphs for different phases (e.g., Month 1-3, Month 4-6).
+  Use subgraphs for different phases (e.g., subgraph "Month 1-3"... end). Do not use colons in subgraph titles.
   Each node in the flowchart should represent a specific action or milestone.
 
   Student Profile: {{{studentProfile}}}
