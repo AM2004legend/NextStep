@@ -21,9 +21,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
-import { MermaidRenderer } from '@/components/MermaidRenderer';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import dynamic from 'next/dynamic';
+
+const MermaidRenderer = dynamic(() => import('@/components/MermaidRenderer').then(mod => mod.MermaidRenderer), {
+  ssr: false,
+  loading: () => <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
+});
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -200,7 +205,7 @@ export default function Home() {
     <div className="flex gap-4 md:gap-8">
       <div className="flex flex-col items-center">
         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground">{icon}</div>
-        {children && <div className="flex-grow w-px bg-border my-2"></div>}
+        {<div className="flex-grow w-px bg-border my-2"></div>}
       </div>
       <div className="flex-1 pb-8">
         {step && <p className="text-sm font-semibold text-primary">STEP {step}</p>}
@@ -225,6 +230,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto py-8 px-4">
           <h1 className="text-4xl md:text-5xl font-bold text-center font-headline">Your Personalized AI Co-Pilot</h1>
           <p className="text-muted-foreground text-center mt-4 text-lg">Navigate your future with confidence. Let's build your roadmap, one step at a time.</p>
+          
           <Tabs defaultValue="college" className="mt-8">
             <TabsList className="grid w-full grid-cols-2 bg-primary/10">
               <TabsTrigger value="school" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">For School Students</TabsTrigger>
@@ -289,151 +295,153 @@ export default function Home() {
                   </CardContent>
                 </Card>
               </Section>
+              
               {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+
               {schoolRoadmap && (
-                  <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is a visual roadmap for your college entrance preparation.">
-                      <Card>
-                          <CardContent className="pt-6">
-                              <MermaidRenderer chart={schoolRoadmap.roadmap} />
-                          </CardContent>
-                      </Card>
-                  </Section>
+                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is a visual roadmap for your college entrance preparation.">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <MermaidRenderer chart={schoolRoadmap.roadmap} />
+                    </CardContent>
+                  </Card>
+                </Section>
               )}
             </TabsContent>
 
             <TabsContent value="college" className="mt-6">
-                <Tabs defaultValue="my-path" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-primary/10">
-                    <TabsTrigger value="my-path" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">My Career Path</TabsTrigger>
-                    <TabsTrigger value="explore" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Explore Careers</TabsTrigger>
-                  </TabsList>
+              <Tabs defaultValue="my-path" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-primary/10">
+                  <TabsTrigger value="my-path" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">My Career Path</TabsTrigger>
+                  <TabsTrigger value="explore" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Explore Careers</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="my-path" className="mt-6">
+                  <Section icon={<GraduationCap />} title="Build Your Profile" description="Tell us about yourself so our AI can understand your unique strengths and aspirations." step={1}>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <Form {...profileForm}>
+                          <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                            <FormField control={profileForm.control} name="academicBackground" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Academic Background</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="e.g., Bachelor's in Computer Science from..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <div className="grid md:grid-cols-2 gap-6">
+                              <FormField control={profileForm.control} name="interests" render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Interests</FormLabel>
+                                  <FormControl><Input placeholder="e.g., AI, mobile development, design" {...field} /></FormControl>
+                                  <FormDescription>Separate interests with commas.</FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )} />
+                              <FormField control={profileForm.control} name="skills" render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Current Skills</FormLabel>
+                                  <FormControl><Input placeholder="e.g., Python, React, Figma" {...field} /></FormControl>
+                                  <FormDescription>Separate skills with commas.</FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )} />
+                            </div>
+                            <FormField control={profileForm.control} name="goals" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Career Goals</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="What do you want to achieve in your career?" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={profileForm.control} name="learningStyle" render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Preferred Learning Style</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger><SelectValue placeholder="Select your learning style" /></SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Visual">Visual</SelectItem>
+                                    <SelectItem value="Auditory">Auditory</SelectItem>
+                                    <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
+                                    <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <Button type="submit" disabled={isRecsPending} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+                              {isRecsPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : <><BrainCircuit className="mr-2" /> Get AI Recommendations</>}
+                            </Button>
+                          </form>
+                        </Form>
+                      </CardContent>
+                    </Card>
+                  </Section>
                   
-                  <TabsContent value="my-path" className="mt-6">
-                    <Section icon={<GraduationCap />} title="Build Your Profile" description="Tell us about yourself so our AI can understand your unique strengths and aspirations." step={1}>
-                      <Card>
-                        <CardContent className="pt-6">
-                          <Form {...profileForm}>
-                            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                              <FormField control={profileForm.control} name="academicBackground" render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Academic Background</FormLabel>
-                                  <FormControl>
-                                    <Textarea placeholder="e.g., Bachelor's in Computer Science from..." {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )} />
-                              <div className="grid md:grid-cols-2 gap-6">
-                                <FormField control={profileForm.control} name="interests" render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Interests</FormLabel>
-                                    <FormControl><Input placeholder="e.g., AI, mobile development, design" {...field} /></FormControl>
-                                    <FormDescription>Separate interests with commas.</FormDescription>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-                                <FormField control={profileForm.control} name="skills" render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Current Skills</FormLabel>
-                                    <FormControl><Input placeholder="e.g., Python, React, Figma" {...field} /></FormControl>
-                                    <FormDescription>Separate skills with commas.</FormDescription>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-                              </div>
-                              <FormField control={profileForm.control} name="goals" render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Career Goals</FormLabel>
-                                  <FormControl>
-                                    <Textarea placeholder="What do you want to achieve in your career?" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )} />
-                              <FormField control={profileForm.control} name="learningStyle" render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Preferred Learning Style</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger><SelectValue placeholder="Select your learning style" /></SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="Visual">Visual</SelectItem>
-                                      <SelectItem value="Auditory">Auditory</SelectItem>
-                                      <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
-                                      <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )} />
-                              <Button type="submit" disabled={isRecsPending} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                                {isRecsPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</> : <><BrainCircuit className="mr-2" /> Get AI Recommendations</>}
-                              </Button>
-                            </form>
-                          </Form>
-                        </CardContent>
-                      </Card>
+                  {isRecsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+
+                  {recommendations && (
+                    <Section icon={<Compass />} title="Choose Your Path" description="Here are some career paths that align with your profile. Select one to explore further." step={2}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {recommendations.careerOptions.map((career) => (
+                                <Button key={career} variant={selectedCareer === career ? "default" : "outline"} className="h-auto p-4 flex flex-col items-start justify-start text-left" onClick={() => handleSelectCareer(career)} disabled={isGapsPending}>
+                                    <Briefcase className="w-5 h-5 mb-2"/>
+                                    <span className="font-semibold whitespace-normal">{career}</span>
+                                    {isGapsPending && selectedCareer === career && <Loader2 className="h-4 w-4 animate-spin ml-auto" />}
+                                </Button>
+                            ))}
+                        </div>
                     </Section>
-                    
-                    {isRecsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+                  )}
 
-                    {recommendations && (
-                      <Section icon={<Compass />} title="Choose Your Path" description="Here are some career paths that align with your profile. Select one to explore further." step={2}>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                              {recommendations.careerOptions.map((career) => (
-                                  <Button key={career} variant={selectedCareer === career ? "default" : "outline"} className="h-auto p-4 flex flex-col items-start justify-start text-left" onClick={() => handleSelectCareer(career)} disabled={isGapsPending}>
-                                      <Briefcase className="w-5 h-5 mb-2"/>
-                                      <span className="font-semibold whitespace-normal">{career}</span>
-                                      {isGapsPending && selectedCareer === career && <Loader2 className="h-4 w-4 animate-spin ml-auto" />}
-                                  </Button>
-                              ))}
-                          </div>
-                      </Section>
-                    )}
+                  {isGapsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
-                    {isGapsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+                  {skillGaps && selectedCareer && (
+                    <Section icon={<Target />} title="Analyze Your Skill Gaps" description={`For a career in ${selectedCareer}, here are the skills you should focus on developing.`} step={3}>
+                        <Card>
+                            <CardContent className="pt-6 grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-2">Technical Skills</h3>
+                                    {skillGaps.missingTechnicalSkills.length > 0 ? (
+                                        <ul className="space-y-2">{skillGaps.missingTechnicalSkills.map(skill => <li key={skill} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{skill}</li>)}</ul>
+                                    ) : <p className="text-muted-foreground">No specific technical skill gaps identified. Great job!</p>}
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-2">Soft Skills</h3>
+                                    {skillGaps.missingSoftSkills.length > 0 ? (
+                                        <ul className="space-y-2">{skillGaps.missingSoftSkills.map(skill => <li key={skill} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{skill}</li>)}</ul>
+                                    ) : <p className="text-muted-foreground">No specific soft skill gaps identified. Well done!</p>}
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Button onClick={handleGenerateRoadmap} disabled={isRoadmapPending} className="w-full">
+                                    {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate My Personalized Roadmap</>}
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    </Section>
+                  )}
 
-                    {skillGaps && selectedCareer && (
-                      <Section icon={<Target />} title="Analyze Your Skill Gaps" description={`For a career in ${selectedCareer}, here are the skills you should focus on developing.`} step={3}>
+                  {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+
+                  {roadmap && (
+                      <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap to gain the skills you need." step={4}>
                           <Card>
-                              <CardContent className="pt-6 grid md:grid-cols-2 gap-6">
-                                  <div>
-                                      <h3 className="font-semibold text-lg mb-2">Technical Skills</h3>
-                                      {skillGaps.missingTechnicalSkills.length > 0 ? (
-                                          <ul className="space-y-2">{skillGaps.missingTechnicalSkills.map(skill => <li key={skill} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{skill}</li>)}</ul>
-                                      ) : <p className="text-muted-foreground">No specific technical skill gaps identified. Great job!</p>}
-                                  </div>
-                                  <div>
-                                      <h3 className="font-semibold text-lg mb-2">Soft Skills</h3>
-                                      {skillGaps.missingSoftSkills.length > 0 ? (
-                                          <ul className="space-y-2">{skillGaps.missingSoftSkills.map(skill => <li key={skill} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />{skill}</li>)}</ul>
-                                      ) : <p className="text-muted-foreground">No specific soft skill gaps identified. Well done!</p>}
-                                  </div>
+                              <CardContent className="pt-6">
+                                  <MermaidRenderer chart={roadmap.roadmap} />
                               </CardContent>
-                              <CardFooter>
-                                  <Button onClick={handleGenerateRoadmap} disabled={isRoadmapPending} className="w-full">
-                                      {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate My Personalized Roadmap</>}
-                                  </Button>
-                              </CardFooter>
                           </Card>
                       </Section>
-                    )}
+                  )}
+                </TabsContent>
 
-                    {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
-
-                    {roadmap && (
-                        <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap to gain the skills you need." step={4}>
-                            <Card>
-                                <CardContent className="pt-6">
-                                    <MermaidRenderer chart={roadmap.roadmap} />
-                                </CardContent>
-                            </Card>
-                        </Section>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="explore" className="mt-6">
+                <TabsContent value="explore" className="mt-6">
                   <Section icon={<Compass />} title="Career Explorer" description="Not sure where to start? Enter some interests and skills to explore potential career paths.">
                     <Card>
                       <CardContent className="pt-6">
@@ -478,12 +486,12 @@ export default function Home() {
                         </Form>
                       </CardContent>
                     </Card>
-                    </Section>
+                  </Section>
 
-                    {isExplorerPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+                  {isExplorerPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
-                    {exploredCareers && (
-                      <Section icon={<ListTodo />} title="Exploration Results" description="Based on your input, here are some career paths and the skills you'd need to develop.">
+                  {exploredCareers && (
+                    <Section icon={<ListTodo />} title="Exploration Results" description="Based on your input, here are some career paths and the skills you'd need to develop.">
                       <Card>
                         <CardContent className="space-y-6 pt-6">
                           {exploredCareers.careerPaths.map(path => (
@@ -504,10 +512,10 @@ export default function Home() {
                           ))}
                         </CardContent>
                       </Card>
-                      </Section>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                    </Section>
+                  )}
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </div>
