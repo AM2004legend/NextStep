@@ -25,8 +25,12 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
-import { RoadmapChart } from '@/components/RoadmapChart';
+import { Skeleton } from '@/components/ui/skeleton';
 
+const RoadmapChart = dynamic(() => import('@/components/RoadmapChart').then(mod => mod.RoadmapChart), {
+  ssr: false,
+  loading: () => <div className="w-full h-[150px]"><Skeleton className="h-full w-full" /></div>
+});
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
