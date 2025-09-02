@@ -26,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const RoadmapChart = dynamic(() => import('@/components/RoadmapChart').then(mod => mod.RoadmapChart), {
   ssr: false,
@@ -301,13 +302,27 @@ export default function Home() {
               {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
               {schoolRoadmap && (
-                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is a visual roadmap for your college entrance preparation. Hover over the chart for details.">
-                   <RoadmapChart 
+                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual roadmap and detailed plan for your college entrance preparation.">
+                  <RoadmapChart 
                     milestones={schoolRoadmap.milestones} 
                     title="College Prep Timeline"
                     description="A quarterly guide to your success."
                     dataKey="quarter"
                   />
+                  <Accordion type="single" collapsible className="w-full mt-4">
+                    {schoolRoadmap.milestones.map((milestone) => (
+                      <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
+                        <AccordionTrigger>Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
+                        <AccordionContent>
+                          <ul className="list-disc pl-5 space-y-2">
+                            {milestone.tasks.map((task, index) => (
+                              <li key={index}>{task}</li>
+                            ))}
+                          </ul>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
                 </Section>
               )}
             </TabsContent>
@@ -435,13 +450,27 @@ export default function Home() {
                         {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
                         {roadmap && (
-                            <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap to gain the skills you need. Hover over the chart for details." step={4}>
+                            <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual roadmap and detailed plan. Expand each month to see the specific tasks." step={4}>
                                 <RoadmapChart 
                                   milestones={roadmap.milestones}
                                   title={`Roadmap to ${selectedCareer}`}
                                   description="A monthly guide to your success."
                                   dataKey="month"
                                 />
+                                <Accordion type="single" collapsible className="w-full mt-4">
+                                  {roadmap.milestones.map((milestone) => (
+                                    <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
+                                      <AccordionTrigger>Month {milestone.month}: {milestone.title}</AccordionTrigger>
+                                      <AccordionContent>
+                                        <ul className="list-disc pl-5 space-y-2">
+                                          {milestone.tasks.map((task, index) => (
+                                            <li key={index}>{task}</li>
+                                          ))}
+                                        </ul>
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  ))}
+                                </Accordion>
                             </Section>
                         )}
                     </div>
@@ -534,3 +563,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
