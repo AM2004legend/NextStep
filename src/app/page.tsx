@@ -299,10 +299,10 @@ export default function Home() {
 
               {schoolRoadmap && (
                 <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation.">
-                  <Flowchart
+                   <Flowchart
                     title="College Prep Timeline"
                     description="A quarterly guide to your success."
-                    milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title}))}
+                    milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title, tasks: m.tasks }))}
                   />
                   <Accordion type="single" collapsible className="w-full mt-4">
                     {schoolRoadmap.milestones.map((milestone) => (
@@ -449,7 +449,7 @@ export default function Home() {
                               <Flowchart
                                 title={`Roadmap to ${selectedCareer}`}
                                 description="A monthly guide to your success."
-                                milestones={roadmap.milestones.map(m => ({ label: `Month ${m.month}`, title: m.title}))}
+                                milestones={roadmap.milestones.map(m => ({ label: `Month ${m.month}`, title: m.title, tasks: m.tasks }))}
                               />
                               <Accordion type="single" collapsible className="w-full mt-4">
                                 {roadmap.milestones.map((milestone) => (
