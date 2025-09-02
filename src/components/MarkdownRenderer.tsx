@@ -31,10 +31,10 @@ export const MarkdownRenderer: FC<{ content: string }> = ({ content }) => {
     <div className="space-y-4">
       {lines.map((line, index) => {
         if (line.startsWith('### ')) {
-          return <h3 key={index} className="text-xl font-bold mt-6 mb-2 pb-2 border-b font-headline">{line.substring(4)}</h3>;
+          return <h3 key={index} className="text-xl font-semibold mt-6 mb-2 pb-2 border-b font-headline">{line.substring(4)}</h3>;
         }
         if (line.startsWith('## ')) {
-          return <h2 key={index} className="text-2xl font-bold mt-8 mb-3 pb-2 border-b font-headline">{line.substring(3)}</h2>;
+          return <h2 key={index} className="text-2xl font-semibold mt-8 mb-3 pb-2 border-b font-headline">{line.substring(3)}</h2>;
         }
         if (line.startsWith('- [ ]') || line.startsWith('- [x]')) {
           return <ChecklistItem key={index} line={line} />;

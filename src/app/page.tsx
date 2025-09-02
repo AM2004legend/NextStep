@@ -200,11 +200,11 @@ export default function Home() {
     <div className="flex gap-4 md:gap-8">
       <div className="flex flex-col items-center">
         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground">{icon}</div>
-        <div className="flex-grow w-px bg-border my-2"></div>
+        {children && <div className="flex-grow w-px bg-border my-2"></div>}
       </div>
       <div className="flex-1 pb-8">
         {step && <p className="text-sm font-semibold text-primary">STEP {step}</p>}
-        <h2 className="text-2xl font-bold tracking-tight mb-1 font-headline">{title}</h2>
+        <h2 className="text-2xl font-semibold tracking-tight mb-1 font-headline">{title}</h2>
         <p className="text-muted-foreground mb-4">{description}</p>
         <div className="space-y-4">
           {children}
@@ -218,12 +218,12 @@ export default function Home() {
       <header className="p-4 border-b">
         <div className="max-w-6xl mx-auto flex items-center gap-2">
           <Logo className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold text-gray-800 font-headline">NextStep</h1>
+          <h1 className="text-2xl font-semibold text-gray-800 font-headline">NextStep</h1>
         </div>
       </header>
       <main className="flex-1">
         <div className="max-w-4xl mx-auto py-8 px-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-center font-headline">Your Personalized AI Co-Pilot</h1>
+          <h1 className="text-4xl md:text-5xl font-semibold text-center font-headline">Your Personalized AI Co-Pilot</h1>
           <p className="text-muted-foreground text-center mt-4 text-lg">Navigate your future with confidence. Let's build your roadmap, one step at a time.</p>
           <Tabs defaultValue="college" className="mt-8">
             <TabsList className="grid w-full grid-cols-2 bg-primary/10">
