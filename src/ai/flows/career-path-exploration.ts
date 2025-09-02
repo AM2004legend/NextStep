@@ -25,18 +25,23 @@ export type CareerPathExplorationInput = z.infer<
   typeof CareerPathExplorationInputSchema
 >;
 
-const CareerPathExplorationOutputSchema = z.object({
-  careerPaths: z
+const SkillRequirementSchema = z.object({
+  careerPath: z.string().describe('The career path.'),
+  skills: z
     .array(z.string())
     .describe(
-      'A list of 3-5 career options aligned with the student profile, tailored to the Indian and global job markets.'
-    ),
-  skillRequirements: z
-    .record(z.string(), z.array(z.string()))
-    .describe(
-      'A map of career paths to a list of missing technical and soft skills for each career path based on the student current skill set.'
+      'A list of missing technical and soft skills for this career path based on the student current skill set.'
     ),
 });
+
+const CareerPathExplorationOutputSchema = z.object({
+  recommendations: z
+    .array(SkillRequirementSchema)
+    .describe(
+      'A list of 3-5 career recommendations, each with a career path and the required skills.'
+    ),
+});
+
 export type CareerPathExplorationOutput = z.infer<
   typeof CareerPathExplorationOutputSchema
 >;
