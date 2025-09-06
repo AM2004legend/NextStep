@@ -209,7 +209,7 @@ export default function Home() {
       <div className="flex-1 pb-12">
         {step && <p className="text-sm font-semibold text-primary mb-1">STEP {step}</p>}
         <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline">{title}</h2>
-        <p className="text-muted-foreground mb-6 max-w-2xl">{description}</p>
+        <div className="text-muted-foreground mb-6 max-w-2xl">{description}</div>
         <div className="space-y-6">
           {children}
         </div>
@@ -242,89 +242,89 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="school" className="mt-8">
-              <Section icon={<School />} title="Plan for College" description="Get a personalized roadmap to help you get into your dream college. Just fill out the form below to get started.">
-                <Card>
-                  <CardContent className="pt-6">
-                    <Form {...schoolForm}>
-                      <form onSubmit={schoolForm.handleSubmit(onSchoolSubmit)} className="space-y-6">
-                        <FormField control={schoolForm.control} name="academicBackground" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Current Grade & Subjects</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="e.g., Class 11, Science with Physics, Chemistry, Math" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <FormField control={schoolForm.control} name="interests" render={({ field }) => (
+                <Section icon={<School />} title="Plan for College" description="Get a personalized roadmap to help you get into your dream college. Just fill out the form below to get started.">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <Form {...schoolForm}>
+                        <form onSubmit={schoolForm.handleSubmit(onSchoolSubmit)} className="space-y-6">
+                          <FormField control={schoolForm.control} name="academicBackground" render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Subjects of Interest</FormLabel>
-                              <FormControl><Input placeholder="e.g., Computer Science, Biology" {...field} /></FormControl>
-                              <FormDescription>Separate with commas.</FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                          <FormField control={schoolForm.control} name="target" render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Target Colleges or Courses</FormLabel>
-                              <FormControl><Input placeholder="e.g., IIT, AIIMS, Ivy League" {...field} /></FormControl>
-                              <FormDescription>What's your dream school?</FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )} />
-                        </div>
-                        <FormField control={schoolForm.control} name="learningStyle" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Preferred Learning Style</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormLabel>Current Grade & Subjects</FormLabel>
                               <FormControl>
-                                <SelectTrigger><SelectValue placeholder="Select your learning style" /></SelectTrigger>
+                                <Textarea placeholder="e.g., Class 11, Science with Physics, Chemistry, Math" {...field} />
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Visual">Visual</SelectItem>
-                                <SelectItem value="Auditory">Auditory</SelectItem>
-                                <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
-                                <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        <Button type="submit" size="lg" disabled={isSchoolRoadmapPending} className="w-full">
-                          {isSchoolRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate College Prep Roadmap</>}
-                        </Button>
-                      </form>
-                    </Form>
-                  </CardContent>
-                </Card>
-              </Section>
-              
-              {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
-
-              {schoolRoadmap && (
-                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation.">
-                   <Flowchart
-                    title="College Prep Timeline"
-                    description="A quarterly guide to your success."
-                    milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title, tasks: m.tasks }))}
-                  />
-                  <Accordion type="single" collapsible className="w-full mt-4">
-                    {schoolRoadmap.milestones.map((milestone) => (
-                      <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
-                        <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
-                        <AccordionContent>
-                          <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                            {milestone.tasks.map((task, index) => (
-                              <li key={index}>{task}</li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <FormField control={schoolForm.control} name="interests" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Subjects of Interest</FormLabel>
+                                <FormControl><Input placeholder="e.g., Computer Science, Biology" {...field} /></FormControl>
+                                <FormDescription>Separate with commas.</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={schoolForm.control} name="target" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Target Colleges or Courses</FormLabel>
+                                <FormControl><Input placeholder="e.g., IIT, AIIMS, Ivy League" {...field} /></FormControl>
+                                <FormDescription>What's your dream school?</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+                          <FormField control={schoolForm.control} name="learningStyle" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Preferred Learning Style</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger><SelectValue placeholder="Select your learning style" /></SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Visual">Visual</SelectItem>
+                                  <SelectItem value="Auditory">Auditory</SelectItem>
+                                  <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
+                                  <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <Button type="submit" size="lg" disabled={isSchoolRoadmapPending} className="w-full">
+                            {isSchoolRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate College Prep Roadmap</>}
+                          </Button>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
                 </Section>
-              )}
+                
+                {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
+
+                {schoolRoadmap && (
+                  <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation.">
+                    <Flowchart
+                      title="College Prep Timeline"
+                      description="A quarterly guide to your success."
+                      milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title, tasks: m.tasks }))}
+                    />
+                    <Accordion type="single" collapsible className="w-full mt-4">
+                      {schoolRoadmap.milestones.map((milestone) => (
+                        <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
+                          <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
+                          <AccordionContent>
+                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                              {milestone.tasks.map((task, index) => (
+                                <li key={index}>{task}</li>
+                              ))}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </Section>
+                )}
             </TabsContent>
 
             <TabsContent value="college" className="mt-8">
