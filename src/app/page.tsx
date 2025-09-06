@@ -27,6 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Flowchart } from '@/components/Flowchart';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -219,9 +220,12 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
       <header className="p-4 border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto flex items-center gap-3">
-          <Logo className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold font-headline">NextStep</h1>
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Logo className="h-8 w-8 text-primary" />
+            <h1 className="text-xl font-bold font-headline">NextStep</h1>
+          </div>
+          <ThemeToggle />
         </div>
       </header>
       <main className="flex-1">
