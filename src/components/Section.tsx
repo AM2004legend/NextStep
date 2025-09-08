@@ -20,7 +20,7 @@ export const Section: React.FC<SectionProps> = ({ icon, title, description, chil
         <div className="flex-grow w-px bg-border my-4"></div>
       </div>
       <div className="flex-1 pb-12">
-        {step && <p className="text-sm font-semibold text-primary mb-1">STEP {step}</p>}
+        {step && <div className="text-sm font-semibold text-primary mb-1">STEP {step}</div>}
         <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline">{title}</h2>
         <div className="text-muted-foreground mb-6 max-w-2xl">{description}</div>
         <div className="space-y-6">
@@ -29,5 +29,3 @@ export const Section: React.FC<SectionProps> = ({ icon, title, description, chil
       </div>
     </div>
   );
-
-    
