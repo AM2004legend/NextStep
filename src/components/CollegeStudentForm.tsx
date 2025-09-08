@@ -30,7 +30,7 @@ const profileFormSchema = z.object({
   interests: z.string().min(3, 'Please list at least one interest.'),
   skills: z.string().min(3, 'Please list at least one skill.'),
   goals: z.string().min(10, 'Please describe your career goals.'),
-  learningStyle: z.enum(['Visual', 'Auditory', 'Reading/Writing', 'Kinesthetic']),
+  learningStyle: z.enum(['Visual', 'Auditory']),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -400,8 +400,6 @@ export const CollegeStudentForm: FC = () => {
                                 <SelectContent>
                                 <SelectItem value="Visual">Visual</SelectItem>
                                 <SelectItem value="Auditory">Auditory</SelectItem>
-                                <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
-                                <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />

@@ -15,7 +15,7 @@ const GenerateSchoolRoadmapInputSchema = z.object({
   studentProfile: z
     .string()
     .describe('The student profile including academic background, interests, and target colleges/courses.'),
-  learningStyle: z.enum(['Visual', 'Auditory', 'Reading/Writing', 'Kinesthetic']).describe("The student's preferred learning style."),
+  learningStyle: z.enum(['Visual', 'Auditory']).describe("The student's preferred learning style."),
 });
 export type GenerateSchoolRoadmapInput = z.infer<typeof GenerateSchoolRoadmapInputSchema>;
 
@@ -48,8 +48,6 @@ const textPrompt = ai.definePrompt({
   Crucially, you MUST tailor the recommended study resources and tasks to the student's learning style.
   - For Visual learners, suggest video lectures, visual aids like charts and diagrams, and platforms like Khan Academy or YouTube.
   - For Auditory learners, recommend audio-based study materials, recorded lectures, and forming study groups for discussion.
-  - For Reading/Writing learners, focus on textbooks, reference books, note-taking, and practicing with past exam papers.
-  - For Kinesthetic learners, emphasize interactive online labs, hands-on experiments or projects, and practical problem-solving sessions.
   
   Student Profile: {{{studentProfile}}}
   Learning Style: {{{learningStyle}}}

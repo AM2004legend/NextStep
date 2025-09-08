@@ -23,7 +23,7 @@ const schoolFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
   interests: z.string().min(3, 'Please list at least one interest.'),
   target: z.string().min(3, 'e.g. IIT, AIIMS, Ivy League'),
-  learningStyle: z.enum(['Visual', 'Auditory', 'Reading/Writing', 'Kinesthetic']),
+  learningStyle: z.enum(['Visual', 'Auditory']),
 });
 
 type SchoolFormValues = z.infer<typeof schoolFormSchema>;
@@ -194,8 +194,6 @@ export const SchoolStudentForm: FC = () => {
                             <SelectContent>
                                 <SelectItem value="Visual">Visual</SelectItem>
                                 <SelectItem value="Auditory">Auditory</SelectItem>
-                                <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
-                                <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
                             </SelectContent>
                             </Select>
                             <FormMessage />
