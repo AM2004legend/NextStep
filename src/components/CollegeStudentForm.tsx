@@ -229,7 +229,7 @@ export const CollegeStudentForm: FC = () => {
   
        if (profile.learningStyle === 'Auditory' && roadmap.audioRoadmap) {
         return (
-          <Section icon={<Music />} title="Your Audio Roadmap" description={`Listen to your personalized plan to become a ${selectedCareer}.`}>
+          <Section icon={<Music />} title="Your Audio Roadmap" description={`Listen to your personalized plan to become a ${selectedCareer}.`} step={4}>
             <Card>
               <CardContent className="pt-6">
                 <audio controls className="w-full">
