@@ -28,7 +28,6 @@ const SchoolRoadmapMilestoneSchema = z.object({
 
 const GenerateSchoolRoadmapOutputSchema = z.object({
   milestones: z.array(SchoolRoadmapMilestoneSchema).describe('A list of quarterly milestones for college entrance preparation.'),
-  roadmapSummary: z.string().optional().describe('A text summary of the roadmap for auditory learners.'),
 });
 
 export type GenerateSchoolRoadmapOutput = z.infer<typeof GenerateSchoolRoadmapOutputSchema>;
@@ -59,20 +58,6 @@ const textPrompt = ai.definePrompt({
 `,
 });
 
-const audioPrompt = ai.definePrompt({
-    name: 'generateSchoolRoadmapAudioPrompt',
-    input: { schema: z.object({ milestones: z.array(SchoolRoadmapMilestoneSchema) }) },
-    output: { schema: z.object({ summary: z.string() }) },
-    prompt: `You are an academic advisor. Summarize the following college prep roadmap in a clear and encouraging tone. Speak directly to the student.
-
-    Milestones:
-    {{#each milestones}}
-    - Quarter {{quarter}}: {{title}} - {{#each tasks}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
-    {{/each}}
-    `,
-});
-
-
 const generateSchoolRoadmapFlow = ai.defineFlow(
   {
     name: 'generateSchoolRoadmapFlow',
@@ -80,23 +65,13 @@ const generateSchoolRoadmapFlow = ai.defineFlow(
     outputSchema: GenerateSchoolRoadmapOutputSchema,
   },
   async input => {
-    const { output: textOutput } = await textPrompt(input);
-    if (!textOutput) {
+    const { output } = await textPrompt(input);
+    if (!output) {
         throw new Error('Failed to generate school roadmap text.');
-    }
-
-    let roadmapSummary: string | undefined = undefined;
-
-    if (input.learningStyle === 'Auditory') {
-        const { output: audioOutput } = await audioPrompt({ milestones: textOutput.milestones });
-        if(audioOutput) {
-            roadmapSummary = audioOutput.summary;
-        }
     }
     
     return {
-      milestones: textOutput.milestones,
-      roadmapSummary,
+      milestones: output.milestones,
     };
   }
 );

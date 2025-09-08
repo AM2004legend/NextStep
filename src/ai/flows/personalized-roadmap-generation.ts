@@ -31,7 +31,6 @@ const RoadmapMilestoneSchema = z.object({
 
 const GenerateRoadmapOutputSchema = z.object({
   milestones: z.array(RoadmapMilestoneSchema).describe("A list of milestones, ordered chronologically, for a 6-12 month actionable roadmap."),
-  roadmapSummary: z.string().optional().describe('A text summary of the roadmap for auditory learners.'),
 });
 
 export type GenerateRoadmapOutput = z.infer<typeof GenerateRoadmapOutputSchema>;
@@ -40,7 +39,7 @@ export async function generateRoadmap(input: GenerateRoadmapInput): Promise<Gene
   return generateRoadmapFlow(input);
 }
 
-const textPrompt = ai.definePrompt({
+const prompt = ai.definePrompt({
   name: 'generateRoadmapTextPrompt',
   input: {schema: GenerateRoadmapInputSchema},
   output: {schema: z.object({ milestones: z.array(RoadmapMilestoneSchema) })},
@@ -65,20 +64,6 @@ const textPrompt = ai.definePrompt({
 `,
 });
 
-const audioPrompt = ai.definePrompt({
-    name: 'generateRoadmapAudioPrompt',
-    input: { schema: z.object({ milestones: z.array(RoadmapMilestoneSchema) }) },
-    output: { schema: z.object({ summary: z.string() }) },
-    prompt: `You are a career coach. Summarize the following roadmap in a conversational and encouraging tone. Speak directly to the student.
-
-    Milestones:
-    {{#each milestones}}
-    - Month {{month}}: {{title}} - {{#each tasks}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
-    {{/each}}
-    `,
-});
-
-
 const generateRoadmapFlow = ai.defineFlow(
   {
     name: 'generateRoadmapFlow',
@@ -86,22 +71,13 @@ const generateRoadmapFlow = ai.defineFlow(
     outputSchema: GenerateRoadmapOutputSchema,
   },
   async input => {
-    const { output: textOutput } = await textPrompt(input);
-    if (!textOutput) {
+    const { output } = await prompt(input);
+    if (!output) {
       throw new Error('Failed to generate roadmap text.');
-    }
-
-    let roadmapSummary: string | undefined = undefined;
-    if (input.learningStyle === 'Auditory') {
-      const { output: audioOutput } = await audioPrompt({ milestones: textOutput.milestones });
-      if (audioOutput) {
-        roadmapSummary = audioOutput.summary;
-      }
     }
     
     return {
-      milestones: textOutput.milestones,
-      roadmapSummary,
+      milestones: output.milestones,
     };
   }
 );

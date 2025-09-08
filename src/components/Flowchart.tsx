@@ -2,7 +2,8 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
@@ -10,6 +11,9 @@ interface Milestone {
   label: string;
   title: string;
   tasks?: string[];
+  isAuditory?: boolean;
+  isSpeaking?: boolean;
+  onSpeak?: () => void;
 }
 
 interface FlowchartProps {
@@ -52,7 +56,14 @@ export const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, descrip
                   quarterColors[index % quarterColors.length]
                 )}
               >
-                <div className="font-bold text-lg mb-2 text-foreground">{milestone.label}</div>
+                <div className="flex justify-between items-center w-full mb-2">
+                    <div className="font-bold text-lg text-foreground">{milestone.label}</div>
+                    {milestone.isAuditory && (
+                        <Button variant="ghost" size="icon" onClick={milestone.onSpeak}>
+                            <Volume2 className="h-5 w-5" />
+                        </Button>
+                    )}
+                </div>
                 <div className="font-semibold text-base mb-4 text-center break-words text-foreground/90">{milestone.title}</div>
                 {milestone.tasks && (
                   <ul className="list-disc pl-5 space-y-2 text-left text-sm text-muted-foreground self-start w-full">

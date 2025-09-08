@@ -4,7 +4,7 @@ import React, { useState, useTransition, type FC, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square } from 'lucide-react';
+import { Loader2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square, Volume2 } from 'lucide-react';
 import { generateSchoolRoadmap, type GenerateSchoolRoadmapOutput } from '@/ai/flows/school-student-roadmap';
 
 
@@ -35,7 +35,7 @@ export const SchoolStudentForm: FC = () => {
     const [schoolRoadmap, setSchoolRoadmap] = useState<GenerateSchoolRoadmapOutput | null>(null);
     const [schoolProfile, setSchoolProfile] = useState<SchoolFormValues | null>(null);
 
-    const [speaking, setSpeaking] = useState(false);
+    const [speakingId, setSpeakingId] = useState<string | null>(null);
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -47,21 +47,22 @@ export const SchoolStudentForm: FC = () => {
         };
     }, []);
 
-    const speak = ({ text }: {text: string}) => {
+    const speak = (text: string, id: string) => {
         if (!isMounted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-        setSpeaking(true);
+        
+        if (speakingId === id) {
+            window.speechSynthesis.cancel();
+            setSpeakingId(null);
+            return;
+        }
+
+        setSpeakingId(id);
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.onend = () => {
-          setSpeaking(false);
+          setSpeakingId(null);
         };
         window.speechSynthesis.speak(utterance);
       };
-  
-    const cancel = () => {
-        if (!isMounted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-        setSpeaking(false);
-        window.speechSynthesis.cancel();
-    }
 
     const schoolForm = useForm<SchoolFormValues>({
         resolver: zodResolver(schoolFormSchema),
@@ -97,58 +98,51 @@ export const SchoolStudentForm: FC = () => {
         }
         
         if (!schoolRoadmap || !schoolProfile || !isMounted) return null;
-
-        if (schoolProfile.learningStyle === 'Auditory' && schoolRoadmap.roadmapSummary) {
-            const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
-            if (!speechSupported) {
-                return (
-                   <Section icon={<Music />} title="Audio Roadmap Unavailable" description="Your browser does not support speech synthesis." step={2}>
-                      <Card>
-                        <CardContent className="pt-6">
-                          <p className="text-muted-foreground">We can't play the audio roadmap because your browser doesn't support the required technology. Please try a different browser like Chrome or Firefox.</p>
-                        </CardContent>
-                      </Card>
-                   </Section>
-                )
-            }
-            return (
-                <Section icon={<Music />} title="Your Audio Roadmap" description="Listen to your personalized college prep plan." step={2}>
-                <Card>
-                    <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                        <Button onClick={() => speak({ text: schoolRoadmap.roadmapSummary! })} size="lg" disabled={speaking}>
-                            {speaking ? <PauseCircle className="mr-2" /> : <PlayCircle className="mr-2" />}
-                            {speaking ? 'Speaking...' : 'Listen to Roadmap'}
-                        </Button>
-                        <Button onClick={cancel} size="lg" variant="outline" disabled={!speaking}>
-                            <Square className="mr-2" />
-                            Stop
-                        </Button>
-                    </div>
-                    </CardContent>
-                </Card>
-                </Section>
-            );
-        }
         
+        const isAuditory = schoolProfile.learningStyle === 'Auditory';
+
         return (
             <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation." step={2}>
             <Flowchart
-            title="College Prep Timeline"
-            description="A quarterly guide to your success."
-            milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title, tasks: m.tasks }))}
+              title="College Prep Timeline"
+              description="A quarterly guide to your success."
+              milestones={schoolRoadmap.milestones.map(m => ({ 
+                  label: `Quarter ${m.quarter}`, 
+                  title: m.title, 
+                  tasks: m.tasks,
+                  isAuditory,
+                  isSpeaking: speakingId === `flow-quarter-${m.quarter}`,
+                  onSpeak: () => speak(`Quarter ${m.quarter}: ${m.title}. Tasks: ${m.tasks.join('. ')}`, `flow-quarter-${m.quarter}`)
+              }))}
             />
             <Accordion type="single" collapsible className="w-full mt-4">
             {schoolRoadmap.milestones.map((milestone) => (
                 <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
-                <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
-                <AccordionContent>
-                    <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                    {milestone.tasks.map((task, index) => (
-                        <li key={index}>{task}</li>
-                    ))}
-                    </ul>
-                </AccordionContent>
+                    <AccordionTrigger className="text-lg">
+                        <div className="flex items-center justify-between w-full">
+                            <span>Quarter {milestone.quarter}: {milestone.title}</span>
+                            {isAuditory && (
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-quarter-${milestone.quarter}`);
+                                    }}
+                                    className="mr-2"
+                                >
+                                    <Volume2 className="h-5 w-5" />
+                                </Button>
+                            )}
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                        {milestone.tasks.map((task, index) => (
+                            <li key={index}>{task}</li>
+                        ))}
+                        </ul>
+                    </AccordionContent>
                 </AccordionItem>
             ))}
             </Accordion>
@@ -216,7 +210,7 @@ export const SchoolStudentForm: FC = () => {
                 </Card>
             </Section>
             
-            {renderSchoolRoadmap()}
+            {schoolRoadmap && renderSchoolRoadmap()}
         </div>
     )
 }
