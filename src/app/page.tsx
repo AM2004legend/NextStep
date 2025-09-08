@@ -203,6 +203,10 @@ export default function Home() {
   };
 
   const renderSchoolRoadmap = () => {
+    if (isSchoolRoadmapPending) {
+        return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
+    }
+      
     if (!schoolRoadmap || !schoolProfile) return null;
 
     if (schoolProfile.learningStyle === 'Auditory' && schoolRoadmap.audioRoadmap) {
@@ -245,7 +249,71 @@ export default function Home() {
     );
   }
 
+  const renderCollegeRecommendations = () => {
+    if (isRecsPending) {
+      return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
+    }
+  
+    if (recommendations) {
+      return (
+        <Section icon={<Compass />} title="Choose Your Path" description="Here are some career paths that align with your profile. Select one to explore further." step={2}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recommendations.careerOptions.map((career) => (
+              <Button key={career} variant={selectedCareer === career ? "default" : "outline"} className="h-auto p-4 flex flex-col items-start justify-start text-left rounded-lg" onClick={() => handleSelectCareer(career)} disabled={isGapsPending}>
+                <Briefcase className="w-6 h-6 mb-2"/>
+                <span className="font-semibold text-base whitespace-normal">{career}</span>
+                {isGapsPending && selectedCareer === career && <Loader2 className="h-4 w-4 animate-spin ml-auto mt-2" />}
+              </Button>
+            ))}
+          </div>
+        </Section>
+      );
+    }
+  
+    return null;
+  };
+  
+  const renderSkillGaps = () => {
+    if (isGapsPending) {
+      return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
+    }
+  
+    if (skillGaps && selectedCareer) {
+      return (
+        <Section icon={<Target />} title="Analyze Your Skill Gaps" description={`For a career in ${selectedCareer}, here are the skills you should focus on developing.`} step={3}>
+          <Card>
+            <CardContent className="pt-6 grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="font-semibold text-xl mb-4">Technical Skills to Learn</h3>
+                {skillGaps.missingTechnicalSkills.length > 0 ? (
+                  <ul className="space-y-3">{skillGaps.missingTechnicalSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
+                ) : <p className="text-muted-foreground">No specific technical skill gaps identified. Great job!</p>}
+              </div>
+              <div>
+                <h3 className="font-semibold text-xl mb-4">Soft Skills to Develop</h3>
+                {skillGaps.missingSoftSkills.length > 0 ? (
+                  <ul className="space-y-3">{skillGaps.missingSoftSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
+                ) : <p className="text-muted-foreground">No specific soft skill gaps identified. Well done!</p>}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleGenerateRoadmap} size="lg" disabled={isRoadmapPending} className="w-full">
+                {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate My Personalized Roadmap</>}
+              </Button>
+            </CardFooter>
+          </Card>
+        </Section>
+      );
+    }
+  
+    return null;
+  };
+
   const renderCollegeRoadmap = () => {
+    if (isRoadmapPending) {
+      return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
+    }
+  
     if (!roadmap || !selectedCareer || !profile) return null;
 
      if (profile.learningStyle === 'Auditory' && roadmap.audioRoadmap) {
@@ -287,6 +355,41 @@ export default function Home() {
         </Section>
     );
   };
+  
+  const renderExplorerResults = () => {
+    if (isExplorerPending) {
+        return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
+    }
+      
+    if(exploredCareers) {
+        return (
+            <Section icon={<ListTodo />} title="Exploration Results" description="Based on your input, here are some career paths and the skills you'd need to develop.">
+              <Card>
+                <CardContent className="space-y-6 pt-6">
+                  {exploredCareers.recommendations.map(rec => (
+                    <Alert key={rec.careerPath} className="[&>svg]:top-5">
+                      <Briefcase className="h-5 w-5" />
+                      <AlertTitle className="font-bold text-lg mb-2">{rec.careerPath}</AlertTitle>
+                      <AlertDescription>
+                        <h4 className="font-semibold mb-2 text-foreground">Skill Requirements:</h4>
+                        {rec.skills.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {rec.skills.map(skill => (
+                              <Badge key={skill} variant="secondary">{skill}</Badge>
+                            ))}
+                          </div>
+                        ) : <p className="text-sm text-muted-foreground">You seem to have most skills for this path!</p>}
+                      </AlertDescription>
+                    </Alert>
+                  ))}
+                </CardContent>
+              </Card>
+            </Section>
+        )
+    }
+
+    return null;
+  }
 
 
   return (
@@ -372,8 +475,6 @@ export default function Home() {
                 </Card>
               </Section>
               
-              {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
-
               {renderSchoolRoadmap()}
             </TabsContent>
 
@@ -452,53 +553,10 @@ export default function Home() {
                     </Card>
                   </Section>
                     
-                  {isRecsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
-
-                  {recommendations && (
-                    <Section icon={<Compass />} title="Choose Your Path" description="Here are some career paths that align with your profile. Select one to explore further." step={2}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {recommendations.careerOptions.map((career) => (
-                          <Button key={career} variant={selectedCareer === career ? "default" : "outline"} className="h-auto p-4 flex flex-col items-start justify-start text-left rounded-lg" onClick={() => handleSelectCareer(career)} disabled={isGapsPending}>
-                            <Briefcase className="w-6 h-6 mb-2"/>
-                            <span className="font-semibold text-base whitespace-normal">{career}</span>
-                            {isGapsPending && selectedCareer === career && <Loader2 className="h-4 w-4 animate-spin ml-auto mt-2" />}
-                          </Button>
-                        ))}
-                      </div>
-                    </Section>
-                  )}
-
-                  {isGapsPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
-
-                  {skillGaps && selectedCareer && (
-                    <Section icon={<Target />} title="Analyze Your Skill Gaps" description={`For a career in ${selectedCareer}, here are the skills you should focus on developing.`} step={3}>
-                      <Card>
-                        <CardContent className="pt-6 grid md:grid-cols-2 gap-8">
-                          <div>
-                            <h3 className="font-semibold text-xl mb-4">Technical Skills to Learn</h3>
-                            {skillGaps.missingTechnicalSkills.length > 0 ? (
-                              <ul className="space-y-3">{skillGaps.missingTechnicalSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
-                            ) : <p className="text-muted-foreground">No specific technical skill gaps identified. Great job!</p>}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-xl mb-4">Soft Skills to Develop</h3>
-                            {skillGaps.missingSoftSkills.length > 0 ? (
-                              <ul className="space-y-3">{skillGaps.missingSoftSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
-                            ) : <p className="text-muted-foreground">No specific soft skill gaps identified. Well done!</p>}
-                          </div>
-                        </CardContent>
-                        <CardFooter>
-                          <Button onClick={handleGenerateRoadmap} size="lg" disabled={isRoadmapPending} className="w-full">
-                            {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate My Personalized Roadmap</>}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    </Section>
-                  )}
-
-                  {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
-
+                  {renderCollegeRecommendations()}
+                  {renderSkillGaps()}
                   {renderCollegeRoadmap()}
+
                 </TabsContent>
 
                 <TabsContent value="explore" className="mt-8">
@@ -548,32 +606,7 @@ export default function Home() {
                     </Card>
                   </Section>
 
-                  {isExplorerPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
-
-                  {exploredCareers && (
-                    <Section icon={<ListTodo />} title="Exploration Results" description="Based on your input, here are some career paths and the skills you'd need to develop.">
-                      <Card>
-                        <CardContent className="space-y-6 pt-6">
-                          {exploredCareers.recommendations.map(rec => (
-                            <Alert key={rec.careerPath} className="[&>svg]:top-5">
-                              <Briefcase className="h-5 w-5" />
-                              <AlertTitle className="font-bold text-lg mb-2">{rec.careerPath}</AlertTitle>
-                              <AlertDescription>
-                                <h4 className="font-semibold mb-2 text-foreground">Skill Requirements:</h4>
-                                {rec.skills.length > 0 ? (
-                                  <div className="flex flex-wrap gap-2">
-                                    {rec.skills.map(skill => (
-                                      <Badge key={skill} variant="secondary">{skill}</Badge>
-                                    ))}
-                                  </div>
-                                ) : <p className="text-sm text-muted-foreground">You seem to have most skills for this path!</p>}
-                              </AlertDescription>
-                            </Alert>
-                          ))}
-                        </CardContent>
-                      </Card>
-                    </Section>
-                  )}
+                  {renderExplorerResults()}
                 </TabsContent>
               </Tabs>
             </TabsContent>
