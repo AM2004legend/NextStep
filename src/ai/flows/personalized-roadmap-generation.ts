@@ -9,7 +9,9 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
+import wav from 'wav';
 
 const GenerateRoadmapInputSchema = z.object({
   studentProfile: z
@@ -31,6 +33,7 @@ const RoadmapMilestoneSchema = z.object({
 
 const GenerateRoadmapOutputSchema = z.object({
   milestones: z.array(RoadmapMilestoneSchema).describe("A list of milestones, ordered chronologically, for a 6-12 month actionable roadmap."),
+  audioRoadmap: z.string().optional().describe('Base64 encoded WAV audio file of the roadmap summary for auditory learners.'),
 });
 
 export type GenerateRoadmapOutput = z.infer<typeof GenerateRoadmapOutputSchema>;
@@ -39,8 +42,8 @@ export async function generateRoadmap(input: GenerateRoadmapInput): Promise<Gene
   return generateRoadmapFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateRoadmapPrompt',
+const textPrompt = ai.definePrompt({
+  name: 'generateRoadmapTextPrompt',
   input: {schema: GenerateRoadmapInputSchema},
   output: {schema: GenerateRoadmapOutputSchema},
   prompt: `You are a career coach expert in the Indian and global job markets.
@@ -64,6 +67,45 @@ const prompt = ai.definePrompt({
 `,
 });
 
+const audioPrompt = ai.definePrompt({
+    name: 'generateRoadmapAudioPrompt',
+    input: { schema: z.object({ milestones: z.array(RoadmapMilestoneSchema) }) },
+    prompt: `You are a career coach. Summarize the following roadmap in a conversational and encouraging tone. Speak directly to the student.
+
+    Milestones:
+    {{#each milestones}}
+    - Month {{month}}: {{title}} - {{#each tasks}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+    {{/each}}
+    `,
+});
+
+async function toWav(
+  pcmData: Buffer,
+  channels = 1,
+  rate = 24000,
+  sampleWidth = 2
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const writer = new wav.Writer({
+      channels,
+      sampleRate: rate,
+      bitDepth: sampleWidth * 8,
+    });
+
+    let bufs = [] as any[];
+    writer.on('error', reject);
+    writer.on('data', function (d) {
+      bufs.push(d);
+    });
+    writer.on('end', function () {
+      resolve(Buffer.concat(bufs).toString('base64'));
+    });
+
+    writer.write(pcmData);
+    writer.end();
+  });
+}
+
 const generateRoadmapFlow = ai.defineFlow(
   {
     name: 'generateRoadmapFlow',
@@ -71,7 +113,36 @@ const generateRoadmapFlow = ai.defineFlow(
     outputSchema: GenerateRoadmapOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const { output } = await textPrompt(input);
+    if (!output) {
+      throw new Error('Failed to generate roadmap text.');
+    }
+
+    if (input.learningStyle === 'Auditory') {
+      const audioPromptText = await audioPrompt({ milestones: output.milestones });
+
+      const { media } = await ai.generate({
+          model: googleAI.model('gemini-2.5-flash-preview-tts'),
+          config: {
+              responseModalities: ['AUDIO'],
+              speechConfig: {
+                  voiceConfig: {
+                      prebuiltVoiceConfig: { voiceName: 'Algenib' },
+                  },
+              },
+          },
+          prompt: audioPromptText,
+      });
+
+      if (media?.url) {
+          const audioBuffer = Buffer.from(
+              media.url.substring(media.url.indexOf(',') + 1),
+              'base64'
+          );
+          output.audioRoadmap = 'data:audio/wav;base64,' + await toWav(audioBuffer);
+      }
+    }
+    
+    return output;
   }
 );

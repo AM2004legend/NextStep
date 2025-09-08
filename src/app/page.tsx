@@ -4,7 +4,7 @@ import React, { useState, useTransition, type FC } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { BrainCircuit, Briefcase, Target, GraduationCap, Lightbulb, BookOpen, ChevronRight, Loader2, Compass, CheckCircle2, ListTodo, Route, School } from 'lucide-react';
+import { BrainCircuit, Briefcase, Target, GraduationCap, Lightbulb, BookOpen, ChevronRight, Loader2, Compass, CheckCircle2, ListTodo, Route, School, Music } from 'lucide-react';
 import { careerPathRecommendation, type CareerPathRecommendationOutput } from '@/ai/flows/career-path-recommendation';
 import { analyzeSkillGaps, type AnalyzeSkillGapsOutput } from '@/ai/flows/skill-gap-analysis';
 import { generateRoadmap, type GenerateRoadmapOutput } from '@/ai/flows/personalized-roadmap-generation';
@@ -74,6 +74,7 @@ export default function Home() {
   
   const [exploredCareers, setExploredCareers] = useState<CareerPathExplorationOutput | null>(null);
   const [schoolRoadmap, setSchoolRoadmap] = useState<GenerateSchoolRoadmapOutput | null>(null);
+  const [schoolProfile, setSchoolProfile] = useState<SchoolFormValues | null>(null);
 
 
   const profileForm = useForm<ProfileFormValues>({
@@ -92,6 +93,7 @@ export default function Home() {
   });
   
   const onSchoolSubmit = (values: SchoolFormValues) => {
+    setSchoolProfile(values);
     setSchoolRoadmap(null);
     startSchoolRoadmapTransition(async () => {
       const studentProfile = `Academic Background: ${values.academicBackground}, Interests: ${values.interests}, Target Colleges/Courses: ${values.target}`;
@@ -200,6 +202,93 @@ export default function Home() {
     });
   };
 
+  const renderSchoolRoadmap = () => {
+    if (!schoolRoadmap || !schoolProfile) return null;
+
+    if (schoolProfile.learningStyle === 'Auditory' && schoolRoadmap.audioRoadmap) {
+      return (
+        <Section icon={<Music />} title="Your Audio Roadmap" description="Listen to your personalized college prep plan.">
+          <Card>
+            <CardContent className="pt-6">
+              <audio controls className="w-full">
+                <source src={schoolRoadmap.audioRoadmap} type="audio/wav" />
+                Your browser does not support the audio element.
+              </audio>
+            </CardContent>
+          </Card>
+        </Section>
+      );
+    }
+    
+    return (
+        <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation.">
+        <Flowchart
+          title="College Prep Timeline"
+          description="A quarterly guide to your success."
+          milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title, tasks: m.tasks }))}
+        />
+        <Accordion type="single" collapsible className="w-full mt-4">
+          {schoolRoadmap.milestones.map((milestone) => (
+            <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
+              <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
+              <AccordionContent>
+                <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                  {milestone.tasks.map((task, index) => (
+                    <li key={index}>{task}</li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </Section>
+    );
+  }
+
+  const renderCollegeRoadmap = () => {
+    if (!roadmap || !selectedCareer || !profile) return null;
+
+     if (profile.learningStyle === 'Auditory' && roadmap.audioRoadmap) {
+      return (
+        <Section icon={<Music />} title="Your Audio Roadmap" description={`Listen to your personalized plan to become a ${selectedCareer}.`}>
+          <Card>
+            <CardContent className="pt-6">
+              <audio controls className="w-full">
+                <source src={roadmap.audioRoadmap} type="audio/wav" />
+                Your browser does not support the audio element.
+              </audio>
+            </CardContent>
+          </Card>
+        </Section>
+      );
+    }
+
+    return (
+      <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual flowchart and detailed plan. Expand each month to see the specific tasks." step={4}>
+        <Flowchart
+          title={`Roadmap to ${selectedCareer}`}
+          description="A monthly guide to your success."
+          milestones={roadmap.milestones.map(m => ({ label: `Month ${m.month}`, title: m.title, tasks: m.tasks }))}
+        />
+        <Accordion type="single" collapsible className="w-full mt-4">
+          {roadmap.milestones.map((milestone) => (
+            <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
+              <AccordionTrigger className="text-lg">Month {milestone.month}: {milestone.title}</AccordionTrigger>
+              <AccordionContent>
+                <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                  {milestone.tasks.map((task, index) => (
+                    <li key={index}>{task}</li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+        </Section>
+    );
+  };
+
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
       <header className="p-4 border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
@@ -285,29 +374,7 @@ export default function Home() {
               
               {isSchoolRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
-              {schoolRoadmap && (
-                <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation.">
-                  <Flowchart
-                    title="College Prep Timeline"
-                    description="A quarterly guide to your success."
-                    milestones={schoolRoadmap.milestones.map(m => ({ label: `Quarter ${m.quarter}`, title: m.title, tasks: m.tasks }))}
-                  />
-                  <Accordion type="single" collapsible className="w-full mt-4">
-                    {schoolRoadmap.milestones.map((milestone) => (
-                      <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
-                        <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
-                        <AccordionContent>
-                          <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                            {milestone.tasks.map((task, index) => (
-                              <li key={index}>{task}</li>
-                            ))}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </Section>
-              )}
+              {renderSchoolRoadmap()}
             </TabsContent>
 
             <TabsContent value="college" className="mt-8">
@@ -431,29 +498,7 @@ export default function Home() {
 
                   {isRoadmapPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
-                  {roadmap && selectedCareer && (
-                    <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual flowchart and detailed plan. Expand each month to see the specific tasks." step={4}>
-                      <Flowchart
-                        title={`Roadmap to ${selectedCareer}`}
-                        description="A monthly guide to your success."
-                        milestones={roadmap.milestones.map(m => ({ label: `Month ${m.month}`, title: m.title, tasks: m.tasks }))}
-                      />
-                      <Accordion type="single" collapsible className="w-full mt-4">
-                        {roadmap.milestones.map((milestone) => (
-                          <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
-                            <AccordionTrigger className="text-lg">Month {milestone.month}: {milestone.title}</AccordionTrigger>
-                            <AccordionContent>
-                              <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                                {milestone.tasks.map((task, index) => (
-                                  <li key={index}>{task}</li>
-                                ))}
-                              </ul>
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                      </Section>
-                  )}
+                  {renderCollegeRoadmap()}
                 </TabsContent>
 
                 <TabsContent value="explore" className="mt-8">

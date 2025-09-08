@@ -9,7 +9,9 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
+import wav from 'wav';
 
 const GenerateSchoolRoadmapInputSchema = z.object({
   studentProfile: z
@@ -28,6 +30,7 @@ const SchoolRoadmapMilestoneSchema = z.object({
 
 const GenerateSchoolRoadmapOutputSchema = z.object({
   milestones: z.array(SchoolRoadmapMilestoneSchema).describe('A list of quarterly milestones for college entrance preparation.'),
+  audioRoadmap: z.string().optional().describe('Base64 encoded WAV audio file of the roadmap summary for auditory learners.'),
 });
 
 export type GenerateSchoolRoadmapOutput = z.infer<typeof GenerateSchoolRoadmapOutputSchema>;
@@ -36,8 +39,8 @@ export async function generateSchoolRoadmap(input: GenerateSchoolRoadmapInput): 
   return generateSchoolRoadmapFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateSchoolRoadmapPrompt',
+const textPrompt = ai.definePrompt({
+  name: 'generateSchoolRoadmapTextPrompt',
   input: {schema: GenerateSchoolRoadmapInputSchema},
   output: {schema: GenerateSchoolRoadmapOutputSchema},
   prompt: `You are an expert academic advisor for high school students aiming for top colleges in India and abroad.
@@ -58,6 +61,45 @@ const prompt = ai.definePrompt({
 `,
 });
 
+const audioPrompt = ai.definePrompt({
+    name: 'generateSchoolRoadmapAudioPrompt',
+    input: { schema: z.object({ milestones: z.array(SchoolRoadmapMilestoneSchema) }) },
+    prompt: `You are an academic advisor. Summarize the following college prep roadmap in a clear and encouraging tone. Speak directly to the student.
+
+    Milestones:
+    {{#each milestones}}
+    - Quarter {{quarter}}: {{title}} - {{#each tasks}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+    {{/each}}
+    `,
+});
+
+async function toWav(
+  pcmData: Buffer,
+  channels = 1,
+  rate = 24000,
+  sampleWidth = 2
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const writer = new wav.Writer({
+      channels,
+      sampleRate: rate,
+      bitDepth: sampleWidth * 8,
+    });
+
+    let bufs = [] as any[];
+    writer.on('error', reject);
+    writer.on('data', function (d) {
+      bufs.push(d);
+    });
+    writer.on('end', function () {
+      resolve(Buffer.concat(bufs).toString('base64'));
+    });
+
+    writer.write(pcmData);
+    writer.end();
+  });
+}
+
 const generateSchoolRoadmapFlow = ai.defineFlow(
   {
     name: 'generateSchoolRoadmapFlow',
@@ -65,7 +107,36 @@ const generateSchoolRoadmapFlow = ai.defineFlow(
     outputSchema: GenerateSchoolRoadmapOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const { output } = await textPrompt(input);
+    if (!output) {
+        throw new Error('Failed to generate school roadmap text.');
+    }
+
+    if (input.learningStyle === 'Auditory') {
+        const audioPromptText = await audioPrompt({ milestones: output.milestones });
+        
+        const { media } = await ai.generate({
+            model: googleAI.model('gemini-2.5-flash-preview-tts'),
+            config: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: 'Algenib' },
+                    },
+                },
+            },
+            prompt: audioPromptText,
+        });
+
+        if (media?.url) {
+            const audioBuffer = Buffer.from(
+                media.url.substring(media.url.indexOf(',') + 1),
+                'base64'
+            );
+            output.audioRoadmap = 'data:audio/wav;base64,' + await toWav(audioBuffer);
+        }
+    }
+    
+    return output;
   }
 );
