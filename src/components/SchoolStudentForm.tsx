@@ -36,12 +36,10 @@ export const SchoolStudentForm: FC = () => {
     const [schoolProfile, setSchoolProfile] = useState<SchoolFormValues | null>(null);
 
     const [speaking, setSpeaking] = useState(false);
-    const [supported, setSupported] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-        setSupported(typeof window !== 'undefined' && 'speechSynthesis' in window);
-        window.speechSynthesis.onvoiceschanged = () => {}; // Ensure voices are loaded
-
+        setIsMounted(true);
         return () => {
           if(typeof window !== 'undefined' && window.speechSynthesis) {
             window.speechSynthesis.cancel();
@@ -50,7 +48,7 @@ export const SchoolStudentForm: FC = () => {
     }, []);
 
     const speak = ({ text }: {text: string}) => {
-        if (!supported) return;
+        if (!isMounted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
         setSpeaking(true);
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.onend = () => {
@@ -60,7 +58,7 @@ export const SchoolStudentForm: FC = () => {
       };
   
     const cancel = () => {
-        if (!supported) return;
+        if (!isMounted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
         setSpeaking(false);
         window.speechSynthesis.cancel();
     }
@@ -98,12 +96,13 @@ export const SchoolStudentForm: FC = () => {
             return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
         }
         
-        if (!schoolRoadmap || !schoolProfile) return null;
+        if (!schoolRoadmap || !schoolProfile || !isMounted) return null;
 
         if (schoolProfile.learningStyle === 'Auditory' && schoolRoadmap.roadmapSummary) {
-            if (!supported) {
+            const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+            if (!speechSupported) {
                 return (
-                   <Section icon={<Music />} title="Audio Roadmap Unavailable" description="Your browser does not support speech synthesis." step={4}>
+                   <Section icon={<Music />} title="Audio Roadmap Unavailable" description="Your browser does not support speech synthesis." step={2}>
                       <Card>
                         <CardContent className="pt-6">
                           <p className="text-muted-foreground">We can't play the audio roadmap because your browser doesn't support the required technology. Please try a different browser like Chrome or Firefox.</p>
@@ -113,7 +112,7 @@ export const SchoolStudentForm: FC = () => {
                 )
             }
             return (
-                <Section icon={<Music />} title="Your Audio Roadmap" description="Listen to your personalized college prep plan.">
+                <Section icon={<Music />} title="Your Audio Roadmap" description="Listen to your personalized college prep plan." step={2}>
                 <Card>
                     <CardContent className="pt-6">
                     <div className="flex items-center gap-4">
@@ -133,7 +132,7 @@ export const SchoolStudentForm: FC = () => {
         }
         
         return (
-            <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation.">
+            <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation." step={2}>
             <Flowchart
             title="College Prep Timeline"
             description="A quarterly guide to your success."
@@ -159,7 +158,7 @@ export const SchoolStudentForm: FC = () => {
     
     return (
         <div>
-            <Section icon={<School />} title="Plan for College" description="Get a personalized roadmap to help you get into your dream college. Just fill out the form below to get started.">
+            <Section icon={<School />} title="Plan for College" description="Get a personalized roadmap to help you get into your dream college. Just fill out the form below to get started." step={1}>
                 <Card>
                 <CardContent className="pt-6">
                     <Form {...schoolForm}>

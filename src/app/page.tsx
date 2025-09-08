@@ -1,7 +1,7 @@
 
 'use client';
 import React from 'react';
-import { BrainCircuit, GraduationCap, School, Compass, Route } from 'lucide-react';
+import { GraduationCap, School } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

@@ -62,12 +62,10 @@ export const CollegeStudentForm: FC = () => {
     const [exploredCareers, setExploredCareers] = useState<CareerPathExplorationOutput | null>(null);
     
     const [speaking, setSpeaking] = useState(false);
-    const [supported, setSupported] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-      setSupported(typeof window !== 'undefined' && 'speechSynthesis' in window);
-      window.speechSynthesis.onvoiceschanged = () => {}; // Ensure voices are loaded
-      
+      setIsMounted(true);
       return () => {
         if(typeof window !== 'undefined' && window.speechSynthesis) {
           window.speechSynthesis.cancel();
@@ -76,7 +74,7 @@ export const CollegeStudentForm: FC = () => {
     }, []);
 
     const speak = ({ text }: {text: string}) => {
-      if (!supported) return;
+      if (!isMounted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
       setSpeaking(true);
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.onend = () => {
@@ -86,7 +84,7 @@ export const CollegeStudentForm: FC = () => {
     };
 
     const cancel = () => {
-      if (!supported) return;
+      if (!isMounted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
       setSpeaking(false);
       window.speechSynthesis.cancel();
     }
@@ -254,10 +252,11 @@ export const CollegeStudentForm: FC = () => {
         return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
       }
     
-      if (!roadmap || !selectedCareer || !profile) return null;
+      if (!roadmap || !selectedCareer || !profile || !isMounted) return null;
   
        if (profile.learningStyle === 'Auditory' && roadmap.roadmapSummary) {
-        if (!supported) {
+        const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+        if (!speechSupported) {
           return (
              <Section icon={<Music />} title="Audio Roadmap Unavailable" description="Your browser does not support speech synthesis." step={4}>
                 <Card>
