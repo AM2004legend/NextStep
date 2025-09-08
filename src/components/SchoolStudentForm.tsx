@@ -4,8 +4,9 @@ import React, { useState, useTransition, type FC, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square, Volume2 } from 'lucide-react';
+import { Loader2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square, Volume2, Compass } from 'lucide-react';
 import { generateSchoolRoadmap, type GenerateSchoolRoadmapOutput } from '@/ai/flows/school-student-roadmap';
+import { suggestColleges, type SuggestCollegesOutput } from '@/ai/flows/college-recommendation';
 
 
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Flowchart } from '@/components/Flowchart';
 import { Section } from '@/components/Section';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CollegeAlternatives } from '@/components/CollegeAlternatives';
+
 
 const schoolFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -30,9 +34,10 @@ type SchoolFormValues = z.infer<typeof schoolFormSchema>;
 
 export const SchoolStudentForm: FC = () => {
     const { toast } = useToast();
-    const [isSchoolRoadmapPending, startSchoolRoadmapTransition] = useTransition();
+    const [isPending, startTransition] = useTransition();
 
     const [schoolRoadmap, setSchoolRoadmap] = useState<GenerateSchoolRoadmapOutput | null>(null);
+    const [collegeSuggestions, setCollegeSuggestions] = useState<SuggestCollegesOutput | null>(null);
     const [schoolProfile, setSchoolProfile] = useState<SchoolFormValues | null>(null);
 
     const [speakingId, setSpeakingId] = useState<string | null>(null);
@@ -73,27 +78,51 @@ export const SchoolStudentForm: FC = () => {
     const onSchoolSubmit = (values: SchoolFormValues) => {
         setSchoolProfile(values);
         setSchoolRoadmap(null);
-        startSchoolRoadmapTransition(async () => {
-        const studentProfile = `Academic Background: ${values.academicBackground}, Interests: ${values.interests}, Target Colleges/Courses: ${values.target}`;
-        const result = await generateSchoolRoadmap({
-            studentProfile,
-            learningStyle: values.learningStyle,
-        });
+        setCollegeSuggestions(null);
 
-        if (result) {
-            setSchoolRoadmap(result);
-        } else {
-            toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not generate a school roadmap. Please try again.',
-            });
-        }
+        startTransition(async () => {
+            const studentProfile = `Academic Background: ${values.academicBackground}, Interests: ${values.interests}, Target Colleges/Courses: ${values.target}`;
+            
+            try {
+                const [roadmapResult, suggestionsResult] = await Promise.all([
+                    generateSchoolRoadmap({
+                        studentProfile,
+                        learningStyle: values.learningStyle,
+                    }),
+                    suggestColleges({ studentProfile })
+                ]);
+
+                if (roadmapResult) {
+                    setSchoolRoadmap(roadmapResult);
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Error',
+                        description: 'Could not generate a school roadmap. Please try again.',
+                    });
+                }
+
+                if (suggestionsResult) {
+                    setCollegeSuggestions(suggestionsResult);
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Error',
+                        description: 'Could not generate college suggestions. Please try again.',
+                    });
+                }
+            } catch (error) {
+                toast({
+                    variant: 'destructive',
+                    title: 'An Unexpected Error Occurred',
+                    description: 'Please try again later.',
+                });
+            }
         });
     };
 
-    const renderSchoolRoadmap = () => {
-        if (isSchoolRoadmapPending) {
+    const renderSchoolResults = () => {
+        if (isPending) {
             return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>
         }
         
@@ -102,50 +131,61 @@ export const SchoolStudentForm: FC = () => {
         const isAuditory = schoolProfile.learningStyle === 'Auditory';
 
         return (
-            <Section icon={<ListTodo />} title="Your College Prep Roadmap" description="Here is your visual flowchart and detailed plan for your college entrance preparation." step={2}>
-            <Flowchart
-              title="College Prep Timeline"
-              description="A quarterly guide to your success."
-              milestones={schoolRoadmap.milestones.map(m => ({ 
-                  label: `Quarter ${m.quarter}`, 
-                  title: m.title, 
-                  tasks: m.tasks,
-                  isAuditory,
-                  isSpeaking: speakingId === `flow-quarter-${m.quarter}`,
-                  onSpeak: () => speak(`Quarter ${m.quarter}: ${m.title}. Tasks: ${m.tasks.join('. ')}`, `flow-quarter-${m.quarter}`)
-              }))}
-            />
-            <Accordion type="single" collapsible className="w-full mt-4">
-            {schoolRoadmap.milestones.map((milestone) => (
-                <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
-                    <AccordionTrigger className="text-lg">
-                        <div className="flex items-center justify-between w-full">
-                            <span>Quarter {milestone.quarter}: {milestone.title}</span>
-                            {isAuditory && (
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-quarter-${milestone.quarter}`);
-                                    }}
-                                    className="mr-2"
-                                >
-                                    <Volume2 className="h-5 w-5" />
-                                </Button>
-                            )}
-                        </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                        <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                        {milestone.tasks.map((task, index) => (
-                            <li key={index}>{task}</li>
-                        ))}
-                        </ul>
-                    </AccordionContent>
-                </AccordionItem>
-            ))}
-            </Accordion>
+            <Section icon={<ListTodo />} title="Your Results" description="Here is your personalized roadmap and college suggestions." step={2}>
+              <Tabs defaultValue="roadmap">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="roadmap"><Route className="mr-2 h-4 w-4"/>Roadmap</TabsTrigger>
+                    <TabsTrigger value="colleges"><Compass className="mr-2 h-4 w-4"/>College Explorer</TabsTrigger>
+                </TabsList>
+                <TabsContent value="roadmap" className="mt-6">
+                    <Flowchart
+                    title="College Prep Timeline"
+                    description="A quarterly guide to your success."
+                    milestones={schoolRoadmap.milestones.map(m => ({ 
+                        label: `Quarter ${m.quarter}`, 
+                        title: m.title, 
+                        tasks: m.tasks,
+                        isAuditory,
+                        isSpeaking: speakingId === `flow-quarter-${m.quarter}`,
+                        onSpeak: () => speak(`Quarter ${m.quarter}: ${m.title}. Tasks: ${m.tasks.join('. ')}`, `flow-quarter-${m.quarter}`)
+                    }))}
+                    />
+                    <Accordion type="single" collapsible className="w-full mt-4">
+                    {schoolRoadmap.milestones.map((milestone) => (
+                        <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
+                            <AccordionTrigger className="text-lg">
+                                <div className="flex items-center justify-between w-full">
+                                    <span>Quarter {milestone.quarter}: {milestone.title}</span>
+                                    {isAuditory && (
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-quarter-${milestone.quarter}`);
+                                            }}
+                                            className="mr-2"
+                                        >
+                                            <Volume2 className="h-5 w-5" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                                <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                                {milestone.tasks.map((task, index) => (
+                                    <li key={index}>{task}</li>
+                                ))}
+                                </ul>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                    </Accordion>
+                </TabsContent>
+                <TabsContent value="colleges" className="mt-6">
+                    <CollegeAlternatives colleges={collegeSuggestions} />
+                </TabsContent>
+              </Tabs>
         </Section>
         );
     }
@@ -199,8 +239,8 @@ export const SchoolStudentForm: FC = () => {
                             <FormMessage />
                         </FormItem>
                         )} />
-                        <Button type="submit" size="lg" disabled={isSchoolRoadmapPending} className="w-full">
-                        {isSchoolRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate College Prep Roadmap</>}
+                        <Button type="submit" size="lg" disabled={isPending} className="w-full">
+                        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Plan...</> : <><Route className="mr-2" /> Generate College Prep Plan</>}
                         </Button>
                     </form>
                     </Form>
@@ -208,7 +248,7 @@ export const SchoolStudentForm: FC = () => {
                 </Card>
             </Section>
             
-            {schoolRoadmap && renderSchoolRoadmap()}
+            {renderSchoolResults()}
         </div>
     )
 }
