@@ -1,10 +1,10 @@
 
 'use client';
-import React, { useState, useTransition, type FC } from 'react';
+import React, { useState, useTransition, type FC, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { BrainCircuit, Briefcase, Target, GraduationCap, Lightbulb, BookOpen, ChevronRight, Loader2, Compass, CheckCircle2, ListTodo, Route, School, Music } from 'lucide-react';
+import { BrainCircuit, Briefcase, Target, GraduationCap, Lightbulb, BookOpen, ChevronRight, Loader2, Compass, CheckCircle2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square } from 'lucide-react';
 import { careerPathRecommendation, type CareerPathRecommendationOutput } from '@/ai/flows/career-path-recommendation';
 import { analyzeSkillGaps, type AnalyzeSkillGapsOutput } from '@/ai/flows/skill-gap-analysis';
 import { generateRoadmap, type GenerateRoadmapOutput } from '@/ai/flows/personalized-roadmap-generation';
@@ -60,7 +60,36 @@ export const CollegeStudentForm: FC = () => {
     const [profile, setProfile] = useState<ProfileFormValues | null>(null);
     
     const [exploredCareers, setExploredCareers] = useState<CareerPathExplorationOutput | null>(null);
-  
+    
+    const [speaking, setSpeaking] = useState(false);
+    const [supported, setSupported] = useState(false);
+
+    useEffect(() => {
+      setSupported(typeof window !== 'undefined' && 'speechSynthesis' in window);
+      window.speechSynthesis.onvoiceschanged = () => {}; // Ensure voices are loaded
+      
+      return () => {
+        if(typeof window !== 'undefined' && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+      };
+    }, []);
+
+    const speak = ({ text }: {text: string}) => {
+      if (!supported) return;
+      setSpeaking(true);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = () => {
+        setSpeaking(false);
+      };
+      window.speechSynthesis.speak(utterance);
+    };
+
+    const cancel = () => {
+      if (!supported) return;
+      setSpeaking(false);
+      window.speechSynthesis.cancel();
+    }
   
     const profileForm = useForm<ProfileFormValues>({
       resolver: zodResolver(profileFormSchema),
@@ -227,15 +256,32 @@ export const CollegeStudentForm: FC = () => {
     
       if (!roadmap || !selectedCareer || !profile) return null;
   
-       if (profile.learningStyle === 'Auditory' && roadmap.audioRoadmap) {
+       if (profile.learningStyle === 'Auditory' && roadmap.roadmapSummary) {
+        if (!supported) {
+          return (
+             <Section icon={<Music />} title="Audio Roadmap Unavailable" description="Your browser does not support speech synthesis." step={4}>
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-muted-foreground">We can't play the audio roadmap because your browser doesn't support the required technology. Please try a different browser like Chrome or Firefox.</p>
+                  </CardContent>
+                </Card>
+             </Section>
+          )
+        }
         return (
           <Section icon={<Music />} title="Your Audio Roadmap" description={`Listen to your personalized plan to become a ${selectedCareer}.`} step={4}>
             <Card>
               <CardContent className="pt-6">
-                <audio controls className="w-full">
-                  <source src={roadmap.audioRoadmap} type="audio/wav" />
-                  Your browser does not support the audio element.
-                </audio>
+                <div className="flex items-center gap-4">
+                    <Button onClick={() => speak({ text: roadmap.roadmapSummary! })} size="lg" disabled={speaking}>
+                        {speaking ? <PauseCircle className="mr-2" /> : <PlayCircle className="mr-2" />}
+                        {speaking ? 'Speaking...' : 'Listen to Roadmap'}
+                    </Button>
+                    <Button onClick={cancel} size="lg" variant="outline" disabled={!speaking}>
+                        <Square className="mr-2" />
+                        Stop
+                    </Button>
+                </div>
               </CardContent>
             </Card>
           </Section>

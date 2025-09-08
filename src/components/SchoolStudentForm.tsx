@@ -1,10 +1,10 @@
 
 'use client';
-import React, { useState, useTransition, type FC } from 'react';
+import React, { useState, useTransition, type FC, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, ListTodo, Route, School, Music } from 'lucide-react';
+import { Loader2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square } from 'lucide-react';
 import { generateSchoolRoadmap, type GenerateSchoolRoadmapOutput } from '@/ai/flows/school-student-roadmap';
 
 
@@ -35,11 +35,41 @@ export const SchoolStudentForm: FC = () => {
     const [schoolRoadmap, setSchoolRoadmap] = useState<GenerateSchoolRoadmapOutput | null>(null);
     const [schoolProfile, setSchoolProfile] = useState<SchoolFormValues | null>(null);
 
+    const [speaking, setSpeaking] = useState(false);
+    const [supported, setSupported] = useState(false);
+
+    useEffect(() => {
+        setSupported(typeof window !== 'undefined' && 'speechSynthesis' in window);
+        window.speechSynthesis.onvoiceschanged = () => {}; // Ensure voices are loaded
+
+        return () => {
+          if(typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+        };
+    }, []);
+
+    const speak = ({ text }: {text: string}) => {
+        if (!supported) return;
+        setSpeaking(true);
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onend = () => {
+          setSpeaking(false);
+        };
+        window.speechSynthesis.speak(utterance);
+      };
+  
+    const cancel = () => {
+        if (!supported) return;
+        setSpeaking(false);
+        window.speechSynthesis.cancel();
+    }
 
     const schoolForm = useForm<SchoolFormValues>({
         resolver: zodResolver(schoolFormSchema),
         defaultValues: { academicBackground: '', interests: '', target: '', learningStyle: 'Visual' },
     });
+
 
     const onSchoolSubmit = (values: SchoolFormValues) => {
         setSchoolProfile(values);
@@ -70,19 +100,36 @@ export const SchoolStudentForm: FC = () => {
         
         if (!schoolRoadmap || !schoolProfile) return null;
 
-        if (schoolProfile.learningStyle === 'Auditory' && schoolRoadmap.audioRoadmap) {
-        return (
-            <Section icon={<Music />} title="Your Audio Roadmap" description="Listen to your personalized college prep plan.">
-            <Card>
-                <CardContent className="pt-6">
-                <audio controls className="w-full">
-                    <source src={schoolRoadmap.audioRoadmap} type="audio/wav" />
-                    Your browser does not support the audio element.
-                </audio>
-                </CardContent>
-            </Card>
-            </Section>
-        );
+        if (schoolProfile.learningStyle === 'Auditory' && schoolRoadmap.roadmapSummary) {
+            if (!supported) {
+                return (
+                   <Section icon={<Music />} title="Audio Roadmap Unavailable" description="Your browser does not support speech synthesis." step={4}>
+                      <Card>
+                        <CardContent className="pt-6">
+                          <p className="text-muted-foreground">We can't play the audio roadmap because your browser doesn't support the required technology. Please try a different browser like Chrome or Firefox.</p>
+                        </CardContent>
+                      </Card>
+                   </Section>
+                )
+            }
+            return (
+                <Section icon={<Music />} title="Your Audio Roadmap" description="Listen to your personalized college prep plan.">
+                <Card>
+                    <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                        <Button onClick={() => speak({ text: schoolRoadmap.roadmapSummary! })} size="lg" disabled={speaking}>
+                            {speaking ? <PauseCircle className="mr-2" /> : <PlayCircle className="mr-2" />}
+                            {speaking ? 'Speaking...' : 'Listen to Roadmap'}
+                        </Button>
+                        <Button onClick={cancel} size="lg" variant="outline" disabled={!speaking}>
+                            <Square className="mr-2" />
+                            Stop
+                        </Button>
+                    </div>
+                    </CardContent>
+                </Card>
+                </Section>
+            );
         }
         
         return (
