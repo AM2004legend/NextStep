@@ -14,10 +14,11 @@ import {z} from 'genkit';
 const GenerateRoadmapInputSchema = z.object({
   studentProfile: z
     .string()
-    .describe('The student profile including academic background, interests, skills, goals, and learning style.'),
+    .describe('The student profile including academic background, interests, and goals.'),
   careerPath: z.string().describe('The chosen career path for the student.'),
   currentSkills: z.string().describe('The student current skills.'),
   skillGaps: z.string().describe('The identified skill gaps for the career path.'),
+  learningStyle: z.enum(['Visual', 'Auditory', 'Reading/Writing', 'Kinesthetic']).describe("The student's preferred learning style."),
 });
 export type GenerateRoadmapInput = z.infer<typeof GenerateRoadmapInputSchema>;
 
@@ -44,13 +45,20 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateRoadmapOutputSchema},
   prompt: `You are a career coach expert in the Indian and global job markets.
 
-  Based on the student profile, chosen career path, current skills, and identified skill gaps, generate a 6-12 month actionable roadmap for the student.
+  Based on the student profile, chosen career path, current skills, identified skill gaps, and learning style, generate a 6-12 month actionable roadmap for the student.
   The roadmap should be broken down into monthly milestones. Each milestone should have a title and a list of specific tasks, resources (courses, certifications, projects).
+
+  Crucially, you MUST tailor the recommended resources and tasks to the student's learning style.
+  - For Visual learners, suggest video tutorials, diagrams, mind maps, and visual-heavy courses.
+  - For Auditory learners, recommend podcasts, audiobooks, lectures, and group discussions.
+  - For Reading/Writing learners, focus on books, articles, blogs, and tasks involving writing summaries or notes.
+  - For Kinesthetic learners, emphasize hands-on projects, workshops, coding exercises, and real-world application of skills.
   
   Student Profile: {{{studentProfile}}}
   Career Path: {{{careerPath}}}
   Current Skills: {{{currentSkills}}}
   Skill Gaps: {{{skillGaps}}}
+  Learning Style: {{{learningStyle}}}
 
   Output the roadmap as a structured JSON object with a list of milestones.
 `,

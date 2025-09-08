@@ -15,7 +15,7 @@ const GenerateSchoolRoadmapInputSchema = z.object({
   studentProfile: z
     .string()
     .describe('The student profile including academic background, interests, and target colleges/courses.'),
-  learningStyle: z.string().describe('The student\'s preferred learning style.'),
+  learningStyle: z.enum(['Visual', 'Auditory', 'Reading/Writing', 'Kinesthetic']).describe("The student's preferred learning style."),
 });
 export type GenerateSchoolRoadmapInput = z.infer<typeof GenerateSchoolRoadmapInputSchema>;
 
@@ -43,7 +43,13 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert academic advisor for high school students aiming for top colleges in India and abroad.
 
   Based on the student's profile and learning style, generate a 6-12 month actionable roadmap for college entrance preparation.
-  The roadmap should be broken down into quarterly milestones. Each milestone should have a title and a list of specific actions, subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), and recommended study resources (books, online courses).
+  The roadmap should be broken down into quarterly milestones. Each milestone should have a title and a list of specific actions, subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), and recommended study resources.
+
+  Crucially, you MUST tailor the recommended study resources and tasks to the student's learning style.
+  - For Visual learners, suggest video lectures, visual aids like charts and diagrams, and platforms like Khan Academy or YouTube.
+  - For Auditory learners, recommend audio-based study materials, recorded lectures, and forming study groups for discussion.
+  - For Reading/Writing learners, focus on textbooks, reference books, note-taking, and practicing with past exam papers.
+  - For Kinesthetic learners, emphasize interactive online labs, hands-on experiments or projects, and practical problem-solving sessions.
   
   Student Profile: {{{studentProfile}}}
   Learning Style: {{{learningStyle}}}
