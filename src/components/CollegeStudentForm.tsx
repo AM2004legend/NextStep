@@ -274,15 +274,15 @@ export const CollegeStudentForm: FC = () => {
           <Accordion type="single" collapsible className="w-full mt-4">
             {roadmap.milestones.map((milestone) => (
               <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
-                <AccordionTrigger className="text-lg">
-                  <div className="flex items-center justify-between w-full">
-                    <span>Month {milestone.month}: {milestone.title}</span>
+                <div className="flex items-center justify-between w-full">
+                    <AccordionTrigger className="text-lg flex-1 text-left">
+                        Month {milestone.month}: {milestone.title}
+                    </AccordionTrigger>
                     {isAuditory && (
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            onClick={(e) => {
-                                e.stopPropagation();
+                            onClick={() => {
                                 speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-month-${milestone.month}`);
                             }}
                             className="mr-2"
@@ -290,8 +290,7 @@ export const CollegeStudentForm: FC = () => {
                             <Volume2 className="h-5 w-5" />
                         </Button>
                     )}
-                  </div>
-                </AccordionTrigger>
+                </div>
                 <AccordionContent>
                   <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                     {milestone.tasks.map((task, index) => (

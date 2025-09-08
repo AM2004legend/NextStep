@@ -153,24 +153,23 @@ export const SchoolStudentForm: FC = () => {
                     <Accordion type="single" collapsible className="w-full mt-4">
                     {schoolRoadmap.milestones.map((milestone) => (
                         <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
-                            <AccordionTrigger className="text-lg">
-                                <div className="flex items-center justify-between w-full">
-                                    <span>Quarter {milestone.quarter}: {milestone.title}</span>
-                                    {isAuditory && (
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-quarter-${milestone.quarter}`);
-                                            }}
-                                            className="mr-2"
-                                        >
-                                            <Volume2 className="h-5 w-5" />
-                                        </Button>
-                                    )}
-                                </div>
-                            </AccordionTrigger>
+                            <div className="flex items-center justify-between w-full">
+                                <AccordionTrigger className="text-lg flex-1 text-left">
+                                    Quarter {milestone.quarter}: {milestone.title}
+                                </AccordionTrigger>
+                                {isAuditory && (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => {
+                                            speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-quarter-${milestone.quarter}`);
+                                        }}
+                                        className="mr-2"
+                                    >
+                                        <Volume2 className="h-5 w-5" />
+                                    </Button>
+                                )}
+                            </div>
                             <AccordionContent>
                                 <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                                 {milestone.tasks.map((task, index) => (
