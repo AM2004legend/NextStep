@@ -9,6 +9,7 @@ import { careerPathRecommendation, type CareerPathRecommendationOutput } from '@
 import { analyzeSkillGaps, type AnalyzeSkillGapsOutput } from '@/ai/flows/skill-gap-analysis';
 import { generateRoadmap, type GenerateRoadmapOutput } from '@/ai/flows/personalized-roadmap-generation';
 import { exploreCareerPaths, type CareerPathExplorationOutput } from '@/ai/flows/career-path-exploration';
+import { suggestCompanies, type SuggestCompaniesOutput } from '@/ai/flows/company-recommendation';
 
 
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Flowchart } from '@/components/Flowchart';
 import { Section } from '@/components/Section';
+import { CompanyAlternatives } from '@/components/CompanyAlternatives';
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -52,12 +54,14 @@ export const CollegeStudentForm: FC = () => {
     const [isGapsPending, startGapsTransition] = useTransition();
     const [isRoadmapPending, startRoadmapTransition] = useTransition();
     const [isExplorerPending, startExplorerTransition] = useTransition();
+    const [isCompaniesPending, startCompaniesTransition] = useTransition();
   
     const [recommendations, setRecommendations] = useState<CareerPathRecommendationOutput | null>(null);
     const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
     const [skillGaps, setSkillGaps] = useState<AnalyzeSkillGapsOutput | null>(null);
     const [roadmap, setRoadmap] = useState<GenerateRoadmapOutput | null>(null);
     const [profile, setProfile] = useState<ProfileFormValues | null>(null);
+    const [companySuggestions, setCompanySuggestions] = useState<SuggestCompaniesOutput | null>(null);
     
     const [exploredCareers, setExploredCareers] = useState<CareerPathExplorationOutput | null>(null);
     
@@ -106,6 +110,8 @@ export const CollegeStudentForm: FC = () => {
       setSelectedCareer(null);
       setSkillGaps(null);
       setRoadmap(null);
+      setCompanySuggestions(null);
+
       startRecsTransition(async () => {
         const result = await careerPathRecommendation(values);
         if (result) {
@@ -145,6 +151,7 @@ export const CollegeStudentForm: FC = () => {
       setSelectedCareer(career);
       setSkillGaps(null);
       setRoadmap(null);
+      setCompanySuggestions(null);
   
       startGapsTransition(async () => {
         if (!profile) return;
@@ -168,16 +175,22 @@ export const CollegeStudentForm: FC = () => {
         const fullProfile = `Academic Background: ${profile.academicBackground}, Interests: ${profile.interests}, Goals: ${profile.goals}`;
         const gaps = `Technical: ${skillGaps.missingTechnicalSkills.join(', ') || 'None'}. Soft Skills: ${skillGaps.missingSoftSkills.join(', ') || 'None'}.`;
   
-        const result = await generateRoadmap({
-          studentProfile: fullProfile,
-          careerPath: selectedCareer,
-          currentSkills: profile.skills,
-          skillGaps: gaps,
-          learningStyle: profile.learningStyle
-        });
+        const [roadmapResult, companiesResult] = await Promise.all([
+            generateRoadmap({
+                studentProfile: fullProfile,
+                careerPath: selectedCareer,
+                currentSkills: profile.skills,
+                skillGaps: gaps,
+                learningStyle: profile.learningStyle
+            }),
+            suggestCompanies({
+                studentProfile: fullProfile,
+                careerGoal: selectedCareer,
+            })
+        ]);
   
-        if (result) {
-          setRoadmap(result);
+        if (roadmapResult) {
+          setRoadmap(roadmapResult);
         } else {
           toast({
             variant: 'destructive',
@@ -185,6 +198,15 @@ export const CollegeStudentForm: FC = () => {
             description: 'Could not generate a roadmap. Please try again.',
           });
         }
+        if (companiesResult) {
+            setCompanySuggestions(companiesResult);
+        } else {
+            toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'Could not generate company suggestions. Please try again.',
+            });
+          }
       });
     };
   
@@ -237,7 +259,7 @@ export const CollegeStudentForm: FC = () => {
               </CardContent>
               <CardFooter>
                 <Button onClick={handleGenerateRoadmap} size="lg" disabled={isRoadmapPending} className="w-full">
-                  {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Roadmap...</> : <><Route className="mr-2" /> Generate My Personalized Roadmap</>}
+                  {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Your Plan...</> : <><Route className="mr-2" /> Generate My Personalized Plan</>}
                 </Button>
               </CardFooter>
             </Card>
@@ -249,61 +271,74 @@ export const CollegeStudentForm: FC = () => {
     };
   
     const renderCollegeRoadmap = () => {
-      if (isRoadmapPending) {
-        return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
-      }
+        if (isRoadmapPending) {
+          return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
+        }
+      
+        if (!roadmap || !selectedCareer || !profile || !isMounted) return null;
     
-      if (!roadmap || !selectedCareer || !profile || !isMounted) return null;
-  
-      const isAuditory = profile.learningStyle === 'Auditory';
-  
-      return (
-        <Section icon={<ListTodo />} title="Your Personalized Roadmap" description="Here is your visual flowchart and detailed plan. Expand each month to see the specific tasks.">
-          <Flowchart
-            title={`Roadmap to ${selectedCareer}`}
-            description="A monthly guide to your success."
-            milestones={roadmap.milestones.map(m => ({ 
-                label: `Month ${m.month}`, 
-                title: m.title, 
-                tasks: m.tasks, 
-                isAuditory, 
-                isSpeaking: speakingId === `flow-month-${m.month}`,
-                onSpeak: () => speak(`Month ${m.month}: ${m.title}. Tasks: ${m.tasks.join('. ')}`, `flow-month-${m.month}`)
-            }))}
-          />
-          <Accordion type="single" collapsible className="w-full mt-4">
-            {roadmap.milestones.map((milestone) => (
-              <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
-                <div className="flex items-center justify-between w-full">
-                    <AccordionTrigger className="text-lg flex-1 text-left">
-                        Month {milestone.month}: {milestone.title}
-                    </AccordionTrigger>
-                    {isAuditory && (
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => {
-                                speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-month-${milestone.month}`);
-                            }}
-                            className="mr-2"
-                        >
-                            <Volume2 className="h-5 w-5" />
-                        </Button>
-                    )}
-                </div>
-                <AccordionContent>
-                  <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                    {milestone.tasks.map((task, index) => (
-                      <li key={index}>{task}</li>
-                    ))}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-          </Section>
-      );
-    };
+        const isAuditory = profile.learningStyle === 'Auditory';
+    
+        return (
+          <Section icon={<ListTodo />} title="Your Personalized Plan" description="Here is your roadmap and some suggested companies to explore for your chosen career path.">
+            <Tabs defaultValue="roadmap">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="roadmap"><Route className="mr-2 h-4 w-4"/>Roadmap</TabsTrigger>
+                    <TabsTrigger value="companies"><Compass className="mr-2 h-4 w-4"/>Company Explorer</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="roadmap" className="mt-6">
+                    <Flowchart
+                        title={`Roadmap to ${selectedCareer}`}
+                        description="A monthly guide to your success."
+                        milestones={roadmap.milestones.map(m => ({ 
+                            label: `Month ${m.month}`, 
+                            title: m.title, 
+                            tasks: m.tasks, 
+                            isAuditory, 
+                            isSpeaking: speakingId === `flow-month-${m.month}`,
+                            onSpeak: () => speak(`Month ${m.month}: ${m.title}. Tasks: ${m.tasks.join('. ')}`, `flow-month-${m.month}`)
+                        }))}
+                    />
+                    <Accordion type="single" collapsible className="w-full mt-4">
+                        {roadmap.milestones.map((milestone) => (
+                        <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
+                            <div className="flex items-center justify-between w-full">
+                                <AccordionTrigger className="text-lg flex-1 text-left">
+                                    Month {milestone.month}: {milestone.title}
+                                </AccordionTrigger>
+                                {isAuditory && (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-month-${milestone.month}`);
+                                        }}
+                                        className="mr-2"
+                                    >
+                                        <Volume2 className="h-5 w-5" />
+                                    </Button>
+                                )}
+                            </div>
+                            <AccordionContent>
+                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                                {milestone.tasks.map((task, index) => (
+                                <li key={index}>{task}</li>
+                                ))}
+                            </ul>
+                            </AccordionContent>
+                        </AccordionItem>
+                        ))}
+                    </Accordion>
+                </TabsContent>
+                <TabsContent value="companies" className="mt-6">
+                    <CompanyAlternatives companies={companySuggestions} />
+                </TabsContent>
+            </Tabs>
+            </Section>
+        );
+      };
     
     const renderExplorerResults = () => {
       if (isExplorerPending) {
