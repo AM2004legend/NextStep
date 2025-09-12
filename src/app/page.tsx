@@ -7,7 +7,6 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CollegeStudentForm } from '@/components/CollegeStudentForm';
 import { SchoolStudentForm } from '@/components/SchoolStudentForm';
-import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
@@ -31,15 +30,15 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1">
-        <div className="h-screen w-full rounded-md bg-neutral-950 relative flex flex-col items-center justify-center antialiased">
+        <div className="relative flex flex-col items-center justify-center antialiased bg-background text-center py-24 md:py-32">
           <div className="max-w-2xl mx-auto p-4 flex flex-col items-center">
             <div className="relative z-10 flex items-center justify-center mb-4">
               <Logo className="h-16 w-16 text-primary" />
             </div>
-            <h1 className="relative z-10 text-5xl md:text-7xl bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-600 text-center font-sans font-bold">
+            <h1 className="relative z-10 text-5xl md:text-7xl bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70 font-sans font-bold">
               NextStep
             </h1>
-            <p className="text-neutral-400 max-w-lg mx-auto my-4 text-lg text-center relative z-10">
+            <p className="text-muted-foreground max-w-lg mx-auto my-4 text-lg text-center relative z-10">
              Your Personalized AI Co-Pilot to navigate your future with confidence.
             </p>
             <Button size="lg" onClick={scrollToContent} className="relative z-10 mt-6">
@@ -47,7 +46,6 @@ export default function Home() {
               <ChevronDown className="ml-2 h-5 w-5"/>
             </Button>
           </div>
-          <BackgroundBeams />
         </div>
         <div id="content" className="max-w-4xl mx-auto py-12 md:py-16 px-4">
           <Tabs defaultValue="college" className="w-full">
