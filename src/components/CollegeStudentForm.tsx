@@ -9,7 +9,6 @@ import { careerPathRecommendation, type CareerPathRecommendationOutput } from '@
 import { analyzeSkillGaps, type AnalyzeSkillGapsOutput } from '@/ai/flows/skill-gap-analysis';
 import { generateRoadmap, type GenerateRoadmapOutput } from '@/ai/flows/personalized-roadmap-generation';
 import { exploreCareerPaths, type CareerPathExplorationOutput } from '@/ai/flows/career-path-exploration';
-import { suggestCompanies, type SuggestCompaniesOutput } from '@/ai/flows/company-recommendation';
 
 
 import { Button } from '@/components/ui/button';
@@ -23,16 +22,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Flowchart } from '@/components/Flowchart';
-import { Section } from '@/components/Section';
-import { CompanyAlternatives } from '@/components/CompanyAlternatives';
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
   interests: z.string().min(3, 'Please list at least one interest.'),
   skills: z.string().min(3, 'Please list at least one skill.'),
   goals: z.string().min(10, 'Please describe your career goals.'),
-  learningStyle: z.enum(['Visual', 'Auditory']),
+  learningStyle: z.enum(['Visual', 'Auditory', 'Reading/Writing', 'Kinesthetic']),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -47,38 +43,24 @@ const explorerFormSchema = z.object({
 
 type ExplorerFormValues = z.infer<typeof explorerFormSchema>;
 
+interface FlowchartProps {
+  milestones: GenerateRoadmapOutput['milestones'];
+  title: string;
+  isAuditory: boolean;
+}
 
-export const CollegeStudentForm: FC = () => {
-    const { toast } = useToast();
-    const [isRecsPending, startRecsTransition] = useTransition();
-    const [isGapsPending, startGapsTransition] = useTransition();
-    const [isRoadmapPending, startRoadmapTransition] = useTransition();
-    const [isExplorerPending, startExplorerTransition] = useTransition();
-    const [isCompaniesPending, startCompaniesTransition] = useTransition();
-  
-    const [recommendations, setRecommendations] = useState<CareerPathRecommendationOutput | null>(null);
-    const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
-    const [skillGaps, setSkillGaps] = useState<AnalyzeSkillGapsOutput | null>(null);
-    const [roadmap, setRoadmap] = useState<GenerateRoadmapOutput | null>(null);
-    const [profile, setProfile] = useState<ProfileFormValues | null>(null);
-    const [companySuggestions, setCompanySuggestions] = useState<SuggestCompaniesOutput | null>(null);
-    
-    const [exploredCareers, setExploredCareers] = useState<CareerPathExplorationOutput | null>(null);
-    
+const quarterColors = [
+    "bg-primary/5",
+    "bg-accent/80",
+    "bg-secondary",
+    "bg-muted",
+];
+
+const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) => {
     const [speakingId, setSpeakingId] = useState<string | null>(null);
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-      setIsMounted(true);
-      return () => {
-        if(typeof window !== 'undefined' && window.speechSynthesis) {
-          window.speechSynthesis.cancel();
-        }
-      };
-    }, []);
 
     const speak = (text: string, id: string) => {
-        if (!isMounted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
       
         if (speakingId === id) {
           window.speechSynthesis.cancel();
@@ -93,6 +75,65 @@ export const CollegeStudentForm: FC = () => {
         };
         window.speechSynthesis.speak(utterance);
       };
+      
+
+    return (
+        <div className="relative pt-6">
+            <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-border" />
+            {milestones.map((milestone, index) => (
+                <div key={milestone.month} className="relative mb-8">
+                    <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-3 h-3 rounded-full bg-primary" />
+                    <Card className={`md:w-10/12 mx-auto ${index % 2 === 0 ? 'md:mr-auto' : 'md:ml-auto'}`}>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                        <CardTitle>Month {milestone.month}: {milestone.title}</CardTitle>
+                        {isAuditory && (
+                            <Button variant="ghost" size="icon" onClick={() => speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `month-${milestone.month}`)}>
+                                {speakingId === `month-${milestone.month}` ? <PauseCircle /> : <PlayCircle />}
+                            </Button>
+                        )}
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                        {milestone.tasks.map((task, i) => (
+                            <li key={i}>{task}</li>
+                        ))}
+                        </ul>
+                    </CardContent>
+                    </Card>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+
+export const CollegeStudentForm: FC = () => {
+    const { toast } = useToast();
+    const [isRecsPending, startRecsTransition] = useTransition();
+    const [isGapsPending, startGapsTransition] = useTransition();
+    const [isRoadmapPending, startRoadmapTransition] = useTransition();
+    const [isExplorerPending, startExplorerTransition] = useTransition();
+  
+    const [recommendations, setRecommendations] = useState<CareerPathRecommendationOutput | null>(null);
+    const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
+    const [skillGaps, setSkillGaps] = useState<AnalyzeSkillGapsOutput | null>(null);
+    const [roadmap, setRoadmap] = useState<GenerateRoadmapOutput | null>(null);
+    const [profile, setProfile] = useState<ProfileFormValues | null>(null);
+    
+    const [exploredCareers, setExploredCareers] = useState<CareerPathExplorationOutput | null>(null);
+    
+    const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        return () => {
+          if (activeAudio) {
+            activeAudio.pause();
+          }
+        };
+      }, [activeAudio]);
+
   
     const profileForm = useForm<ProfileFormValues>({
       resolver: zodResolver(profileFormSchema),
@@ -110,8 +151,6 @@ export const CollegeStudentForm: FC = () => {
       setSelectedCareer(null);
       setSkillGaps(null);
       setRoadmap(null);
-      setCompanySuggestions(null);
-
       startRecsTransition(async () => {
         const result = await careerPathRecommendation(values);
         if (result) {
@@ -151,7 +190,6 @@ export const CollegeStudentForm: FC = () => {
       setSelectedCareer(career);
       setSkillGaps(null);
       setRoadmap(null);
-      setCompanySuggestions(null);
   
       startGapsTransition(async () => {
         if (!profile) return;
@@ -175,22 +213,16 @@ export const CollegeStudentForm: FC = () => {
         const fullProfile = `Academic Background: ${profile.academicBackground}, Interests: ${profile.interests}, Goals: ${profile.goals}`;
         const gaps = `Technical: ${skillGaps.missingTechnicalSkills.join(', ') || 'None'}. Soft Skills: ${skillGaps.missingSoftSkills.join(', ') || 'None'}.`;
   
-        const [roadmapResult, companiesResult] = await Promise.all([
-            generateRoadmap({
-                studentProfile: fullProfile,
-                careerPath: selectedCareer,
-                currentSkills: profile.skills,
-                skillGaps: gaps,
-                learningStyle: profile.learningStyle
-            }),
-            suggestCompanies({
-                studentProfile: fullProfile,
-                careerGoal: selectedCareer,
-            })
-        ]);
+        const result = await generateRoadmap({
+          studentProfile: fullProfile,
+          careerPath: selectedCareer,
+          currentSkills: profile.skills,
+          skillGaps: gaps,
+          learningStyle: profile.learningStyle
+        });
   
-        if (roadmapResult) {
-          setRoadmap(roadmapResult);
+        if (result) {
+          setRoadmap(result);
         } else {
           toast({
             variant: 'destructive',
@@ -198,17 +230,25 @@ export const CollegeStudentForm: FC = () => {
             description: 'Could not generate a roadmap. Please try again.',
           });
         }
-        if (companiesResult) {
-            setCompanySuggestions(companiesResult);
-        } else {
-            toast({
-              variant: 'destructive',
-              title: 'Error',
-              description: 'Could not generate company suggestions. Please try again.',
-            });
-          }
       });
     };
+  
+    const renderSection = (icon: React.ReactNode, title: string, description: string, step: number, children: React.ReactNode) => (
+      <div className="flex gap-8">
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground">{icon}</div>
+          <div className="flex-grow w-px bg-border my-4"></div>
+        </div>
+        <div className="flex-1 pb-12">
+          <div className="text-sm font-semibold text-primary mb-1">STEP {step}</div>
+          <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline">{title}</h2>
+          <div className="text-muted-foreground mb-6 max-w-2xl">{description}</div>
+          <div className="space-y-6">
+            {children}
+          </div>
+        </div>
+      </div>
+    );
   
     const renderCollegeRecommendations = () => {
       if (isRecsPending) {
@@ -216,18 +256,16 @@ export const CollegeStudentForm: FC = () => {
       }
     
       if (recommendations) {
-        return (
-          <Section icon={<Compass />} title="Choose Your Path" description="Here are some career paths that align with your profile. Select one to explore further." step={2}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recommendations.careerOptions.map((career) => (
-                <Button key={career} variant={selectedCareer === career ? "default" : "outline"} className="h-auto p-4 flex flex-col items-start justify-start text-left rounded-lg" onClick={() => handleSelectCareer(career)} disabled={isGapsPending}>
-                  <Briefcase className="w-6 h-6 mb-2"/>
-                  <span className="font-semibold text-base whitespace-normal">{career}</span>
-                  {isGapsPending && selectedCareer === career && <Loader2 className="h-4 w-4 animate-spin ml-auto mt-2" />}
-                </Button>
-              ))}
-            </div>
-          </Section>
+        return renderSection(<Compass />, "Choose Your Path", "Here are some career paths that align with your profile. Select one to explore further.", 2,
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recommendations.careerOptions.map((career) => (
+              <Button key={career} variant={selectedCareer === career ? "default" : "outline"} className="h-auto p-4 flex flex-col items-start justify-start text-left rounded-lg" onClick={() => handleSelectCareer(career)} disabled={isGapsPending}>
+                <Briefcase className="w-6 h-6 mb-2"/>
+                <span className="font-semibold text-base whitespace-normal">{career}</span>
+                {isGapsPending && selectedCareer === career && <Loader2 className="h-4 w-4 animate-spin ml-auto mt-2" />}
+              </Button>
+            ))}
+          </div>
         );
       }
     
@@ -240,30 +278,28 @@ export const CollegeStudentForm: FC = () => {
       }
     
       if (skillGaps && selectedCareer) {
-        return (
-          <Section icon={<Target />} title="Analyze Your Skill Gaps" description={`For a career in ${selectedCareer}, here are the skills you should focus on developing.`} step={3}>
-            <Card>
-              <CardContent className="pt-6 grid md:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="font-semibold text-xl mb-4">Technical Skills to Learn</h3>
-                  {skillGaps.missingTechnicalSkills.length > 0 ? (
-                    <ul className="space-y-3">{skillGaps.missingTechnicalSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
-                  ) : <p className="text-muted-foreground">No specific technical skill gaps identified. Great job!</p>}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-xl mb-4">Soft Skills to Develop</h3>
-                  {skillGaps.missingSoftSkills.length > 0 ? (
-                    <ul className="space-y-3">{skillGaps.missingSoftSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
-                  ) : <p className="text-muted-foreground">No specific soft skill gaps identified. Well done!</p>}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={handleGenerateRoadmap} size="lg" disabled={isRoadmapPending} className="w-full">
-                  {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Your Plan...</> : <><Route className="mr-2" /> Generate My Personalized Plan</>}
-                </Button>
-              </CardFooter>
-            </Card>
-          </Section>
+        return renderSection(<Target />, "Analyze Your Skill Gaps", `For a career in ${selectedCareer}, here are the skills you should focus on developing.`, 3,
+          <Card>
+            <CardContent className="pt-6 grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="font-semibold text-xl mb-4">Technical Skills to Learn</h3>
+                {skillGaps.missingTechnicalSkills.length > 0 ? (
+                  <ul className="space-y-3">{skillGaps.missingTechnicalSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
+                ) : <p className="text-muted-foreground">No specific technical skill gaps identified. Great job!</p>}
+              </div>
+              <div>
+                <h3 className="font-semibold text-xl mb-4">Soft Skills to Develop</h3>
+                {skillGaps.missingSoftSkills.length > 0 ? (
+                  <ul className="space-y-3">{skillGaps.missingSoftSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
+                ) : <p className="text-muted-foreground">No specific soft skill gaps identified. Well done!</p>}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleGenerateRoadmap} size="lg" disabled={isRoadmapPending} className="w-full">
+                {isRoadmapPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Your Plan...</> : <><Route className="mr-2" /> Generate My Personalized Plan</>}
+              </Button>
+            </CardFooter>
+          </Card>
         );
       }
     
@@ -271,56 +307,29 @@ export const CollegeStudentForm: FC = () => {
     };
   
     const renderCollegeRoadmap = () => {
-        if (isRoadmapPending) {
-          return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
-        }
-      
-        if (!roadmap || !selectedCareer || !profile || !isMounted) return null;
+      if (isRoadmapPending) {
+        return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>;
+      }
     
+      if (roadmap && selectedCareer && profile) {
         const isAuditory = profile.learningStyle === 'Auditory';
-    
-        return (
-          <Section icon={<ListTodo />} title="Your Personalized Plan" description="Here is your roadmap and some suggested companies to explore for your chosen career path.">
-            <Tabs defaultValue="roadmap">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="roadmap"><Route className="mr-2 h-4 w-4"/>Roadmap</TabsTrigger>
-                    <TabsTrigger value="companies"><Compass className="mr-2 h-4 w-4"/>Company Explorer</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="roadmap" className="mt-6">
-                    <Flowchart
-                        title={`Roadmap to ${selectedCareer}`}
-                        description="A monthly guide to your success."
-                        milestones={roadmap.milestones.map(m => ({ 
-                            label: `Month ${m.month}`, 
-                            title: m.title, 
-                            tasks: m.tasks, 
-                            isAuditory, 
-                            isSpeaking: speakingId === `flow-month-${m.month}`,
-                            onSpeak: () => speak(`Month ${m.month}: ${m.title}. Tasks: ${m.tasks.join('. ')}`, `flow-month-${m.month}`)
-                        }))}
-                    />
-                    <Accordion type="single" collapsible className="w-full mt-4">
+        return renderSection(<ListTodo />, "Your Personalized Roadmap", "Here is your actionable plan to becoming a successful " + selectedCareer, 4,
+          <Tabs defaultValue={isAuditory ? "audio" : "visual"}>
+            <TabsList>
+              <TabsTrigger value="visual">Visual Roadmap</TabsTrigger>
+              <TabsTrigger value="audio" disabled={!isAuditory}>Audio Guide</TabsTrigger>
+            </TabsList>
+            <TabsContent value="visual">
+                <Flowchart milestones={roadmap.milestones} title={`Roadmap to ${selectedCareer}`} isAuditory={isAuditory} />
+            </TabsContent>
+            <TabsContent value="audio">
+                <Card>
+                    <CardHeader><CardTitle>Audio Guide</CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
+                    <CardContent>
+                    <Accordion type="single" collapsible className="w-full">
                         {roadmap.milestones.map((milestone) => (
                         <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
-                            <div className="flex items-center justify-between w-full">
-                                <AccordionTrigger className="text-lg flex-1 text-left">
-                                    Month {milestone.month}: {milestone.title}
-                                </AccordionTrigger>
-                                {isAuditory && (
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `accordion-month-${milestone.month}`);
-                                        }}
-                                        className="mr-2"
-                                    >
-                                        <Volume2 className="h-5 w-5" />
-                                    </Button>
-                                )}
-                            </div>
+                            <AccordionTrigger className="text-lg">Month {milestone.month}: {milestone.title}</AccordionTrigger>
                             <AccordionContent>
                             <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                                 {milestone.tasks.map((task, index) => (
@@ -331,14 +340,15 @@ export const CollegeStudentForm: FC = () => {
                         </AccordionItem>
                         ))}
                     </Accordion>
-                </TabsContent>
-                <TabsContent value="companies" className="mt-6">
-                    <CompanyAlternatives companies={companySuggestions} />
-                </TabsContent>
-            </Tabs>
-            </Section>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+          </Tabs>
         );
-      };
+      }
+    
+      return null;
+    };
     
     const renderExplorerResults = () => {
       if (isExplorerPending) {
@@ -347,7 +357,7 @@ export const CollegeStudentForm: FC = () => {
         
       if(exploredCareers) {
           return (
-              <Section icon={<ListTodo />} title="Exploration Results" description="Based on your input, here are some career paths and the skills you'd need to develop.">
+              renderSection(<ListTodo />, "Exploration Results", "Based on your input, here are some career paths and the skills you'd need to develop.", 2, 
                 <Card>
                   <CardContent className="space-y-6 pt-6">
                     {exploredCareers.recommendations.map(rec => (
@@ -368,7 +378,7 @@ export const CollegeStudentForm: FC = () => {
                     ))}
                   </CardContent>
                 </Card>
-              </Section>
+              )
           )
       }
   
@@ -383,7 +393,7 @@ export const CollegeStudentForm: FC = () => {
             </TabsList>
             
             <TabsContent value="my-path" className="mt-8">
-                <Section icon={<GraduationCap />} title="Build Your Profile" description="Tell us about yourself so our AI can understand your unique strengths and aspirations." step={1}>
+                {renderSection(<GraduationCap />, "Build Your Profile", "Tell us about yourself so our AI can understand your unique strengths and aspirations.", 1,
                 <Card>
                     <CardContent className="pt-6">
                     <Form {...profileForm}>
@@ -434,6 +444,8 @@ export const CollegeStudentForm: FC = () => {
                                 <SelectContent>
                                 <SelectItem value="Visual">Visual</SelectItem>
                                 <SelectItem value="Auditory">Auditory</SelectItem>
+                                <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
+                                <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -446,7 +458,7 @@ export const CollegeStudentForm: FC = () => {
                     </Form>
                     </CardContent>
                 </Card>
-                </Section>
+                )}
                 
                 {recommendations && renderCollegeRecommendations()}
                 {skillGaps && renderSkillGaps()}
@@ -455,7 +467,7 @@ export const CollegeStudentForm: FC = () => {
             </TabsContent>
 
             <TabsContent value="explore" className="mt-8">
-                <Section icon={<Compass />} title="Career Explorer" description="Not sure where to start? Enter some interests and skills to explore potential career paths.">
+                {renderSection(<Compass />, "Career Explorer", "Not sure where to start? Enter some interests and skills to explore potential career paths.", 1, 
                 <Card>
                     <CardContent className="pt-6">
                     <Form {...explorerForm}>
@@ -499,7 +511,7 @@ export const CollegeStudentForm: FC = () => {
                     </Form>
                     </CardContent>
                 </Card>
-                </Section>
+                )}
 
                 {renderExplorerResults()}
             </TabsContent>
