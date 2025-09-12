@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { CollegeStudentForm } from '@/components/CollegeStudentForm';
 import { SchoolStudentForm } from '@/components/SchoolStudentForm';
+import { PointerHighlight } from '@/components/ui/pointer-highlight';
 
 export default function Home() {
   const scrollToContent = () => {
@@ -32,7 +33,7 @@ export default function Home() {
         <div className="text-center pt-24 md:pt-32 pb-12 md:pb-16">
           <div className="max-w-4xl mx-auto p-4">
             <h1 className="text-5xl md:text-7xl font-bold text-foreground font-headline">
-              Your Personalized AI Career Co-Pilot
+              Your <PointerHighlight><span>Personalized</span></PointerHighlight> AI Career Co-Pilot
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-lg">
               Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
