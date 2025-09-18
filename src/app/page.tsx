@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { CollegeStudentForm } from '@/components/CollegeStudentForm';
 import { SchoolStudentForm } from '@/components/SchoolStudentForm';
 import { PointerHighlight } from '@/components/ui/pointer-highlight';
+import { HeroScroll } from '@/components/HeroScroll';
+import placeholderImages from '@/lib/placeholder-images.json';
 
 export default function Home() {
   const scrollToContent = () => {
@@ -30,19 +32,21 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1">
-        <div className="text-center pt-24 md:pt-32 pb-12 md:pb-16">
-          <div className="max-w-4xl mx-auto p-4">
-            <h1 className="text-5xl md:text-7xl font-bold text-foreground font-headline">
-              Your <PointerHighlight><span>Personalized</span></PointerHighlight> AI Career Co-Pilot
-            </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-lg">
-              Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
-            </p>
-            <div className="mt-8">
-              <Button size="lg" onClick={scrollToContent}>Get Started</Button>
+        <HeroScroll imageUrl={placeholderImages.hero.url}>
+          <div className="text-center pt-24 md:pt-32 pb-12 md:pb-16">
+            <div className="max-w-4xl mx-auto p-4">
+              <h1 className="text-5xl md:text-7xl font-bold text-foreground font-headline">
+                Your <PointerHighlight><span>Personalized</span></PointerHighlight> AI Career Co-Pilot
+              </h1>
+              <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-lg">
+                Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
+              </p>
+              <div className="mt-8">
+                <Button size="lg" onClick={scrollToContent}>Get Started</Button>
+              </div>
             </div>
           </div>
-        </div>
+        </HeroScroll>
 
         <div id="content" className="max-w-4xl mx-auto pb-12 md:pb-16 px-4">
           <Tabs defaultValue="college" className="w-full">
