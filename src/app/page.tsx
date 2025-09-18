@@ -56,9 +56,9 @@ export default function Home() {
 
         <div id="content" className="max-w-4xl mx-auto pb-12 md:pb-16 px-4">
           <Tabs defaultValue="college" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-auto">
-              <TabsTrigger value="school" className="whitespace-normal"><School className="mr-2 h-4 w-4"/>For School Students</TabsTrigger>
-              <TabsTrigger value="college" className="whitespace-normal"><GraduationCap className="mr-2 h-4 w-4"/>For College Students / Graduates</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-auto bg-primary/10 text-primary-foreground">
+              <TabsTrigger value="school" className="whitespace-normal data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground"><School className="mr-2 h-4 w-4"/>For School Students</TabsTrigger>
+              <TabsTrigger value="college" className="whitespace-normal data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground"><GraduationCap className="mr-2 h-4 w-4"/>For College Students / Graduates</TabsTrigger>
             </TabsList>
 
             <TabsContent value="school" className="mt-8">
