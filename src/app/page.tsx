@@ -1,6 +1,7 @@
 
 'use client';
 import React from 'react';
+import { motion } from 'framer-motion';
 import { GraduationCap, School } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -20,26 +21,44 @@ export default function Home() {
   
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
-      <header className="p-4 border-b bg-background/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Logo className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-bold font-headline"><PointerHighlight>NextStep</PointerHighlight></h1>
-          </div>
+       <header className="p-4 bg-background/80 backdrop-blur-sm fixed top-0 w-full z-20">
+        <div className="max-w-6xl mx-auto flex items-center justify-end">
           <ThemeToggle />
         </div>
       </header>
       <main className="flex-1">
         <div className="text-center pt-24 md:pt-32 pb-12 md:pb-16">
           <div className="max-w-4xl mx-auto p-4">
-            <h1 className="text-5xl md:text-7xl font-bold text-foreground font-headline">
+            <motion.div
+              initial={{ opacity: 0.8, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="text-6xl md:text-8xl font-bold text-primary font-headline tracking-tighter">
+                <motion.span
+                  initial={{ opacity: 0.7 }}
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  style={{
+                    textShadow: '0 0 10px hsl(var(--primary) / 0.8), 0 0 20px hsl(var(--primary) / 0.5)',
+                  }}
+                >
+                  NextStep
+                </motion.span>
+              </h1>
+            </motion.div>
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground font-headline mt-6">
               Your <PointerHighlight><span>Personalized</span></PointerHighlight> AI Career Co-Pilot
-            </h1>
+            </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-lg">
               Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
             </p>
             <div className="mt-8">
-              <Button size="lg" onClick={scrollToContent}>Get Started</Button>
+              <Button size="lg" onClick={scrollToContent} suppressHydrationWarning>Get Started</Button>
             </div>
           </div>
         </div>
