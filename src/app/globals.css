@@ -85,7 +85,4 @@
   body {
     @apply bg-background text-foreground;
   }
-  .dark .feature-bg {
-    background-image: var(--bg-image);
-  }
 }
