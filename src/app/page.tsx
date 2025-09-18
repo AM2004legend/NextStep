@@ -49,7 +49,7 @@ export default function Home() {
               Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
             </p>
             <div className="mt-8">
-              <Button size="lg" onClick={scrollToContent}>Get Started</Button>
+              <Button size="lg" onClick={scrollToContent} className="font-headline font-bold">Get Started</Button>
             </div>
           </div>
         </div>
