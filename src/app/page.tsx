@@ -43,7 +43,7 @@ export default function Home() {
               </h1>
             </motion.div>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground font-headline mt-6">
-              Your <PointerHighlight><span>Personalized</span></PointerHighlight> AI Career Co-Pilot
+              <PointerHighlight>Your Personalized AI Career Co-Pilot</PointerHighlight>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-lg">
               Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
@@ -56,7 +56,7 @@ export default function Home() {
 
         <div id="content" className="max-w-4xl mx-auto pb-12 md:pb-16 px-4">
           <Tabs defaultValue="college" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-auto bg-primary/10 text-primary-foreground">
+            <TabsList className="grid w-full grid-cols-2 h-auto bg-primary/10 text-primary">
               <TabsTrigger value="school" className="whitespace-normal data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground"><School className="mr-2 h-4 w-4"/>For School Students</TabsTrigger>
               <TabsTrigger value="college" className="whitespace-normal data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground"><GraduationCap className="mr-2 h-4 w-4"/>For College Students / Graduates</TabsTrigger>
             </TabsList>
