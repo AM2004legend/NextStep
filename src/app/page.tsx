@@ -39,20 +39,7 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-6xl md:text-8xl font-bold text-primary font-headline tracking-tighter">
-                <motion.span
-                  initial={{ opacity: 0.7 }}
-                  animate={{ opacity: [0.7, 1, 0.7] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  style={{
-                    textShadow: '0 0 10px hsl(var(--primary) / 0.8), 0 0 20px hsl(var(--primary) / 0.5)',
-                  }}
-                >
-                  NextStep
-                </motion.span>
+                NextStep
               </h1>
             </motion.div>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground font-headline mt-6">
