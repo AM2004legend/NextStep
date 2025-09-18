@@ -22,7 +22,11 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
        <header className="p-4 bg-background/80 backdrop-blur-sm fixed top-0 w-full z-20">
-        <div className="max-w-6xl mx-auto flex items-center justify-end">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <a href="#" className="flex items-center gap-2 group">
+            <Logo className="w-8 h-8 text-primary group-hover:text-foreground transition-colors" />
+            <span className="text-xl font-bold text-foreground">NextStep</span>
+          </a>
           <ThemeToggle />
         </div>
       </header>
@@ -58,7 +62,7 @@ export default function Home() {
               Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
             </p>
             <div className="mt-8">
-              <Button size="lg" onClick={scrollToContent} suppressHydrationWarning>Get Started</Button>
+              <Button size="lg" onClick={scrollToContent}>Get Started</Button>
             </div>
           </div>
         </div>
