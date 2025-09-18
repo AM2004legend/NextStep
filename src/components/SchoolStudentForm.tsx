@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { PointerHighlight } from './ui/pointer-highlight';
 
 const schoolFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -63,7 +64,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) 
                     <Card className={`md:w-10/12 mx-auto ${index % 2 === 0 ? 'md:mr-auto' : 'md:ml-auto'}`}>
                     <CardHeader>
                     <div className="flex items-center justify-between">
-                        <CardTitle>Quarter {milestone.quarter}: {milestone.title}</CardTitle>
+                        <CardTitle><PointerHighlight>Quarter {milestone.quarter}: {milestone.title}</PointerHighlight></CardTitle>
                         {isAuditory && (
                             <Button variant="ghost" size="icon" onClick={() => speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `quarter-${milestone.quarter}`)}>
                                 {speakingId === `quarter-${milestone.quarter}` ? <PauseCircle /> : <PlayCircle />}
@@ -138,7 +139,7 @@ export const SchoolStudentForm: FC = () => {
           </div>
           <div className="flex-1 pb-12">
             <div className="text-sm font-semibold text-primary mb-1">STEP {step}</div>
-            <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline">{title}</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline"><PointerHighlight>{title}</PointerHighlight></h2>
             <div className="text-muted-foreground mb-6 max-w-2xl">{description}</div>
             <div className="space-y-6">
               {children}
@@ -165,7 +166,7 @@ export const SchoolStudentForm: FC = () => {
                 </TabsContent>
                 <TabsContent value="audio">
                 <Card>
-                    <CardHeader><CardTitle>Audio Guide</CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
+                    <CardHeader><CardTitle><PointerHighlight>Audio Guide</PointerHighlight></CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
                     <CardContent>
                     <Accordion type="single" collapsible className="w-full">
                         {schoolRoadmap.milestones.map((milestone) => (

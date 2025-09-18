@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { PointerHighlight } from './ui/pointer-highlight';
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -86,7 +87,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) 
                     <Card className={`md:w-10/12 mx-auto ${index % 2 === 0 ? 'md:mr-auto' : 'md:ml-auto'}`}>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                        <CardTitle>Month {milestone.month}: {milestone.title}</CardTitle>
+                        <CardTitle><PointerHighlight>Month {milestone.month}: {milestone.title}</PointerHighlight></CardTitle>
                         {isAuditory && (
                             <Button variant="ghost" size="icon" onClick={() => speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `month-${milestone.month}`)}>
                                 {speakingId === `month-${milestone.month}` ? <PauseCircle /> : <PlayCircle />}
@@ -241,7 +242,7 @@ export const CollegeStudentForm: FC = () => {
         </div>
         <div className="flex-1 pb-12">
           <div className="text-sm font-semibold text-primary mb-1">STEP {step}</div>
-          <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline">{title}</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline"><PointerHighlight>{title}</PointerHighlight></h2>
           <div className="text-muted-foreground mb-6 max-w-2xl">{description}</div>
           <div className="space-y-6">
             {children}
@@ -282,13 +283,13 @@ export const CollegeStudentForm: FC = () => {
           <Card>
             <CardContent className="pt-6 grid md:grid-cols-2 gap-8">
               <div>
-                <h3 className="font-semibold text-xl mb-4">Technical Skills to Learn</h3>
+                <h3 className="font-semibold text-xl mb-4"><PointerHighlight>Technical Skills to Learn</PointerHighlight></h3>
                 {skillGaps.missingTechnicalSkills.length > 0 ? (
                   <ul className="space-y-3">{skillGaps.missingTechnicalSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
                 ) : <p className="text-muted-foreground">No specific technical skill gaps identified. Great job!</p>}
               </div>
               <div>
-                <h3 className="font-semibold text-xl mb-4">Soft Skills to Develop</h3>
+                <h3 className="font-semibold text-xl mb-4"><PointerHighlight>Soft Skills to Develop</PointerHighlight></h3>
                 {skillGaps.missingSoftSkills.length > 0 ? (
                   <ul className="space-y-3">{skillGaps.missingSoftSkills.map(skill => <li key={skill} className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-green-500" /><span>{skill}</span></li>)}</ul>
                 ) : <p className="text-muted-foreground">No specific soft skill gaps identified. Well done!</p>}
@@ -324,7 +325,7 @@ export const CollegeStudentForm: FC = () => {
             </TabsContent>
             <TabsContent value="audio">
                 <Card>
-                    <CardHeader><CardTitle>Audio Guide</CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
+                    <CardHeader><CardTitle><PointerHighlight>Audio Guide</PointerHighlight></CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
                     <CardContent>
                     <Accordion type="single" collapsible className="w-full">
                         {roadmap.milestones.map((milestone) => (
@@ -363,9 +364,9 @@ export const CollegeStudentForm: FC = () => {
                     {exploredCareers.recommendations.map(rec => (
                       <Alert key={rec.careerPath} className="[&>svg]:top-5">
                         <Briefcase className="h-5 w-5" />
-                        <AlertTitle className="font-bold text-lg mb-2">{rec.careerPath}</AlertTitle>
+                        <AlertTitle className="font-bold text-lg mb-2"><PointerHighlight>{rec.careerPath}</PointerHighlight></AlertTitle>
                         <AlertDescription>
-                          <h4 className="font-semibold mb-2 text-foreground">Skill Requirements:</h4>
+                          <h4 className="font-semibold mb-2 text-foreground"><PointerHighlight>Skill Requirements:</PointerHighlight></h4>
                           {rec.skills.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {rec.skills.map(skill => (

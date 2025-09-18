@@ -24,7 +24,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-bold font-headline">NextStep</h1>
+            <h1 className="text-xl font-bold font-headline"><PointerHighlight>NextStep</PointerHighlight></h1>
           </div>
           <ThemeToggle />
         </div>
@@ -46,9 +46,9 @@ export default function Home() {
 
         <div id="content" className="max-w-4xl mx-auto pb-12 md:pb-16 px-4">
           <Tabs defaultValue="college" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="school"><School className="mr-2 h-4 w-4"/>For School Students</TabsTrigger>
-              <TabsTrigger value="college"><GraduationCap className="mr-2 h-4 w-4"/>For College Students / Graduates</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-auto">
+              <TabsTrigger value="school" className="whitespace-normal"><School className="mr-2 h-4 w-4"/>For School Students</TabsTrigger>
+              <TabsTrigger value="college" className="whitespace-normal"><GraduationCap className="mr-2 h-4 w-4"/>For College Students / Graduates</TabsTrigger>
             </TabsList>
 
             <TabsContent value="school" className="mt-8">
