@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { CollegeStudentForm } from '@/components/CollegeStudentForm';
 import { SchoolStudentForm } from '@/components/SchoolStudentForm';
 import { PointerHighlight } from '@/components/ui/pointer-highlight';
+import { ClientOnly } from '@/components/ClientOnly';
 
 export default function Home() {
   const scrollToContent = () => {
@@ -62,11 +63,15 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="school" className="mt-8">
-              <SchoolStudentForm />
+              <ClientOnly>
+                <SchoolStudentForm />
+              </ClientOnly>
             </TabsContent>
 
             <TabsContent value="college" className="mt-8">
+              <ClientOnly>
                 <CollegeStudentForm />
+              </ClientOnly>
             </TabsContent>
           </Tabs>
         </div>
