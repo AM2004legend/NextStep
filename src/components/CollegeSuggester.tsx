@@ -13,10 +13,10 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { PointerHighlight } from './ui/pointer-highlight';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { Badge } from './ui/badge';
 
 const formSchema = z.object({
   course: z.string().min(3, 'Please enter a course.'),
+  degreeLevel: z.string().min(3, 'Please enter your target degree level.'),
   interests: z.string().min(3, 'Please enter at least one interest.'),
   preferences: z.string().optional(),
 });
@@ -30,7 +30,7 @@ export const CollegeSuggester: React.FC = () => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { course: '', interests: '', preferences: '' },
+    defaultValues: { course: '', degreeLevel: '', interests: '', preferences: '' },
   });
 
   const onSubmit = (values: FormValues) => {
@@ -52,8 +52,8 @@ export const CollegeSuggester: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle><PointerHighlight>College Suggester</PointerHighlight></CardTitle>
-        <CardDescription>Find the right college for your desired course and interests. Get detailed insights on exams, cutoffs, and costs.</CardDescription>
+        <CardTitle><PointerHighlight>Higher Education</PointerHighlight></CardTitle>
+        <CardDescription>Discover colleges for your next degree. Get detailed insights on exams, cutoffs, and costs.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -66,7 +66,7 @@ export const CollegeSuggester: React.FC = () => {
                     <FormItem>
                     <FormLabel>Target Course</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., Computer Science Engineering" {...field} />
+                        <Input placeholder="e.g., M.Tech in AI" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -74,18 +74,31 @@ export const CollegeSuggester: React.FC = () => {
                 />
                 <FormField
                 control={form.control}
-                name="interests"
+                name="degreeLevel"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Your Interests</FormLabel>
+                    <FormLabel>Degree Level</FormLabel>
                     <FormControl>
-                        <Input placeholder="e.g., AI, Robotics, Cybersecurity" {...field} />
+                        <Input placeholder="e.g., Postgraduate, PhD" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
             </div>
+            <FormField
+              control={form.control}
+              name="interests"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Your Interests</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., AI, Robotics, Cybersecurity" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="preferences"
@@ -100,7 +113,7 @@ export const CollegeSuggester: React.FC = () => {
               )}
             />
             <Button type="submit" disabled={isPending} className="w-full">
-              {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Searching...</> : <><Search className="mr-2" />Find Colleges</>}
+              {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Searching...</> : <><Search className="mr-2" />Find Institutions</>}
             </Button>
           </form>
         </Form>
@@ -109,7 +122,7 @@ export const CollegeSuggester: React.FC = () => {
 
         {suggestions && (
           <div className="mt-8">
-            <h3 className="text-2xl font-bold font-headline mb-4"><PointerHighlight>Suggested Colleges</PointerHighlight></h3>
+            <h3 className="text-2xl font-bold font-headline mb-4"><PointerHighlight>Suggested Institutions</PointerHighlight></h3>
             <Accordion type="single" collapsible className="w-full space-y-2">
                 {suggestions.colleges.map((college, index) => (
                 <AccordionItem value={`item-${index}`} key={college.collegeName} className="border-b-0">
@@ -131,11 +144,11 @@ export const CollegeSuggester: React.FC = () => {
                             </div>
                             <div className="flex items-start gap-3">
                                 <BarChart className="h-4 w-4 mt-0.5 text-primary"/>
-                                <div><span className="font-semibold">Cutoff:</span> {college.previousYearCutoff}</div>
+                                <div><span className="font-semibold">Cutoff/Rank:</span> {college.previousYearCutoff}</div>
                             </div>
                             <div className="flex items-start gap-3 col-span-full">
                                 <BadgeDollarSign className="h-4 w-4 mt-0.5 text-primary"/>
-                                <div><span className="font-semibold">Cost:</span> {college.costBreakdown}</div>
+                                <div><span className="font-semibold">Estimated Cost:</span> {college.costBreakdown}</div>
                             </div>
                         </div>
                         <a href={college.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 text-sm font-semibold">
