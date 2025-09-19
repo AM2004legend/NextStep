@@ -21,7 +21,7 @@ export default function Home() {
   
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
-       <header className="p-4 bg-background/80 backdrop-blur-sm fixed top-0 w-full z-20">
+       <header className="p-4 bg-background fixed top-0 w-full z-20 border-b">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <a href="#" className="flex items-center gap-2 group">
             <Logo className="w-8 h-8 text-primary group-hover:text-foreground transition-colors" />
