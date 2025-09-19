@@ -20,7 +20,8 @@ const CompanySuggestionSchema = z.object({
     companyName: z.string().describe("The name of the company."),
     industry: z.string().describe("The industry the company belongs to."),
     why: z.string().describe("Why this company is a good choice for this career path."),
-    salaryRange: z.string().describe("A typical salary range for entry-to-mid level roles in this career path at this company or in the industry, if specific data isn't available."),
+    salaryRange: z.string().describe("A typical CTC (Cost to Company) salary range for entry-to-mid level roles in this career path at this company or in the industry."),
+    hiringInsights: z.string().describe("Typical requirements or hiring process insights, such as key skills, preferred qualifications, or interview focus areas."),
 });
 
 const SuggestCompaniesOutputSchema = z.object({
@@ -39,7 +40,11 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert career coach and industry analyst.
 
   Based on the provided career path, suggest 5-10 top companies (in India and globally) that hire for this role.
-  For each company, provide its name, industry, why it's a great place for this career, and a typical salary range for entry-to-mid level roles in this career.
+  For each company, provide:
+  1. Its name and industry.
+  2. Why it's a great place for this career.
+  3. A typical CTC (Cost to Company) salary range for entry-to-mid level roles.
+  4. Hiring insights, such as required key skills, qualifications (e.g., "strong portfolio of projects"), or typical interview process.
 
   Career Path: {{{careerPath}}}
 

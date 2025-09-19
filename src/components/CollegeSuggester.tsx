@@ -1,17 +1,19 @@
+
 'use client';
 import React, { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, School, Search, Link as LinkIcon } from 'lucide-react';
+import { Loader2, School, Search, Link as LinkIcon, BarChart, BadgeDollarSign, ClipboardCheck, University, Building } from 'lucide-react';
 import { suggestColleges, type SuggestCollegesOutput } from '@/ai/flows/college-suggester';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { PointerHighlight } from './ui/pointer-highlight';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { Badge } from './ui/badge';
 
 const formSchema = z.object({
   course: z.string().min(3, 'Please enter a course.'),
@@ -51,7 +53,7 @@ export const CollegeSuggester: React.FC = () => {
     <Card>
       <CardHeader>
         <CardTitle><PointerHighlight>College Suggester</PointerHighlight></CardTitle>
-        <CardDescription>Find the right college for your desired course and interests.</CardDescription>
+        <CardDescription>Find the right college for your desired course and interests. Get detailed insights on exams, cutoffs, and costs.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -89,9 +91,9 @@ export const CollegeSuggester: React.FC = () => {
               name="preferences"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location Preferences (Optional)</FormLabel>
+                  <FormLabel>Preferences (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., India, USA, Europe" {...field} />
+                    <Input placeholder="e.g., India, USA, or a specific college like 'IIT Bombay'" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -106,20 +108,43 @@ export const CollegeSuggester: React.FC = () => {
         {isPending && <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin text-primary"/></div>}
 
         {suggestions && (
-          <div className="mt-8 space-y-4">
-            <h3 className="text-2xl font-bold font-headline"><PointerHighlight>Suggested Colleges</PointerHighlight></h3>
-            {suggestions.colleges.map((college) => (
-              <Alert key={college.collegeName}>
-                <School className="h-4 w-4" />
-                <AlertTitle className='font-bold'>{college.collegeName} <span className="text-muted-foreground font-normal">- {college.location}</span></AlertTitle>
-                <AlertDescription>
-                  <p className="mb-2">{college.notableFor}</p>
-                  <a href={college.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 text-sm">
-                    <LinkIcon className="h-3 w-3" /> Website
-                  </a>
-                </AlertDescription>
-              </Alert>
-            ))}
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold font-headline mb-4"><PointerHighlight>Suggested Colleges</PointerHighlight></h3>
+            <Accordion type="single" collapsible className="w-full space-y-2">
+                {suggestions.colleges.map((college, index) => (
+                <AccordionItem value={`item-${index}`} key={college.collegeName} className="border-b-0">
+                    <AccordionTrigger className="p-4 bg-primary/5 hover:bg-primary/10 rounded-lg">
+                        <div className="flex items-center gap-4 text-left">
+                            {college.type === 'Public' ? <Building className="h-5 w-5 text-primary"/> : <University className="h-5 w-5 text-primary"/>}
+                            <div className="flex flex-col">
+                                <span className='font-bold text-base'>{college.collegeName}</span>
+                                <span className="text-sm text-muted-foreground">{college.location}</span>
+                            </div>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-4 space-y-4">
+                        <p className="text-muted-foreground">{college.notableFor}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <div className="flex items-start gap-3">
+                                <ClipboardCheck className="h-4 w-4 mt-0.5 text-primary"/>
+                                <div><span className="font-semibold">Exams:</span> {college.requiredExams}</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <BarChart className="h-4 w-4 mt-0.5 text-primary"/>
+                                <div><span className="font-semibold">Cutoff:</span> {college.previousYearCutoff}</div>
+                            </div>
+                            <div className="flex items-start gap-3 col-span-full">
+                                <BadgeDollarSign className="h-4 w-4 mt-0.5 text-primary"/>
+                                <div><span className="font-semibold">Cost:</span> {college.costBreakdown}</div>
+                            </div>
+                        </div>
+                        <a href={college.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 text-sm font-semibold">
+                            <LinkIcon className="h-3 w-3" /> Visit Website
+                        </a>
+                    </AccordionContent>
+                </AccordionItem>
+                ))}
+            </Accordion>
           </div>
         )}
       </CardContent>
