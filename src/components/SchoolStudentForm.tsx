@@ -4,7 +4,7 @@ import React, { useState, useTransition, type FC, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, ListTodo, Route, School, Music, PlayCircle, PauseCircle } from 'lucide-react';
+import { Loader2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Library } from 'lucide-react';
 import { generateSchoolRoadmap, type GenerateSchoolRoadmapOutput } from '@/ai/flows/school-student-roadmap';
 
 
@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PointerHighlight } from './ui/pointer-highlight';
+import { CollegeSuggester } from './CollegeSuggester';
 
 const schoolFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -131,20 +132,16 @@ export const SchoolStudentForm: FC = () => {
         });
     };
 
-    const renderSection = (icon: React.ReactNode, title: string, description: string, step: number, children: React.ReactNode) => (
-        <div className="flex gap-8">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground">{icon}</div>
-            <div className="flex-grow w-px bg-border my-4"></div>
-          </div>
-          <div className="flex-1 pb-12">
-            <div className="text-sm font-semibold text-primary mb-1">STEP {step}</div>
-            <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline"><PointerHighlight>{title}</PointerHighlight></h2>
-            <div className="text-muted-foreground mb-6 max-w-2xl">{description}</div>
+    const renderSection = (icon: React.ReactNode, title: string, description: string, children: React.ReactNode) => (
+        <div className="space-y-8">
+            <div className="flex flex-col items-center text-center">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">{icon}</div>
+                <h2 className="text-3xl font-bold tracking-tight mb-2 font-headline"><PointerHighlight>{title}</PointerHighlight></h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">{description}</p>
+            </div>
             <div className="space-y-6">
               {children}
             </div>
-          </div>
         </div>
       );
 
@@ -155,37 +152,41 @@ export const SchoolStudentForm: FC = () => {
         
         if (schoolRoadmap && schoolProfile) {
             const isAuditory = schoolProfile.learningStyle === 'Auditory';
-            return renderSection(<ListTodo />, "Your College Prep Plan", "Here is your actionable plan to get into your dream college.", 2,
-            <Tabs defaultValue={isAuditory ? "audio" : "visual"}>
-                <TabsList>
-                    <TabsTrigger value="visual">Visual Roadmap</TabsTrigger>
-                    <TabsTrigger value="audio" disabled={!isAuditory}>Audio Guide</TabsTrigger>
-                </TabsList>
-                <TabsContent value="visual">
-                    <Flowchart milestones={schoolRoadmap.milestones} title="College Prep Timeline" isAuditory={isAuditory}/>
-                </TabsContent>
-                <TabsContent value="audio">
-                <Card>
-                    <CardHeader><CardTitle><PointerHighlight>Audio Guide</PointerHighlight></CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
-                    <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                        {schoolRoadmap.milestones.map((milestone) => (
-                        <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
-                            <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
-                            <AccordionContent>
-                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                                {milestone.tasks.map((task, index) => (
-                                <li key={index}>{task}</li>
-                                ))}
-                            </ul>
-                            </AccordionContent>
-                        </AccordionItem>
-                        ))}
-                    </Accordion>
-                    </CardContent>
-                </Card>
-                </TabsContent>
-            </Tabs>
+            return (
+                <div className="mt-12">
+                    {renderSection(<ListTodo />, "Your College Prep Plan", "Here is your actionable plan to get into your dream college.",
+                        <Tabs defaultValue={isAuditory ? "audio" : "visual"}>
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="visual">Visual Roadmap</TabsTrigger>
+                                <TabsTrigger value="audio" disabled={!isAuditory}>Audio Guide</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="visual" className="mt-6">
+                                <Flowchart milestones={schoolRoadmap.milestones} title="College Prep Timeline" isAuditory={isAuditory}/>
+                            </TabsContent>
+                            <TabsContent value="audio" className="mt-6">
+                                <Card>
+                                    <CardHeader><CardTitle><PointerHighlight>Audio Guide</PointerHighlight></CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
+                                    <CardContent>
+                                    <Accordion type="single" collapsible className="w-full">
+                                        {schoolRoadmap.milestones.map((milestone) => (
+                                        <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
+                                            <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
+                                            <AccordionContent>
+                                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                                                {milestone.tasks.map((task, index) => (
+                                                <li key={index}>{task}</li>
+                                                ))}
+                                            </ul>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+                    )}
+                </div>
             );
         }
 
@@ -193,66 +194,77 @@ export const SchoolStudentForm: FC = () => {
     }
     
     return (
-        <div>
-            {renderSection(<School />, "Plan for College", "Get a personalized roadmap to help you get into your dream college. Just fill out the form below to get started.", 1, 
-                <Card>
-                <CardContent className="pt-6">
-                    <Form {...schoolForm}>
-                    <form onSubmit={schoolForm.handleSubmit(onSchoolSubmit)} className="space-y-6">
-                        <FormField control={schoolForm.control} name="academicBackground" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Current Grade & Subjects</FormLabel>
-                            <FormControl>
-                            <Textarea placeholder="e.g., Class 11, Science with Physics, Chemistry, Math" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )} />
-                        <div className="grid md:grid-cols-2 gap-6">
-                        <FormField control={schoolForm.control} name="interests" render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Subjects of Interest</FormLabel>
-                            <FormControl><Input placeholder="e.g., Computer Science, Biology" {...field} /></FormControl>
-                            <FormDescription>Separate with commas.</FormDescription>
-                            <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={schoolForm.control} name="target" render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Target Colleges or Courses</FormLabel>
-                            <FormControl><Input placeholder="e.g., IIT, AIIMS, Ivy League" {...field} /></FormControl>
-                            <FormDescription>What's your dream school?</FormDescription>
-                            <FormMessage />
-                            </FormItem>
-                        )} />
-                        </div>
-                        <FormField control={schoolForm.control} name="learningStyle" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Preferred Learning Style</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger><SelectValue placeholder="Select your learning style" /></SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="Visual">Visual</SelectItem>
-                                <SelectItem value="Auditory">Auditory</SelectItem>
-                                <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
-                                <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
-                            </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                        )} />
-                        <Button type="submit" size="lg" disabled={isPending} className="w-full">
-                        {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Plan...</> : <><Route className="mr-2" /> Generate College Prep Plan</>}
-                        </Button>
-                    </form>
-                    </Form>
-                </CardContent>
-                </Card>
-            )}
+        <Tabs defaultValue="roadmap" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="roadmap"><Route className="mr-2 h-4 w-4"/>Prep Roadmap</TabsTrigger>
+                <TabsTrigger value="resources"><Library className="mr-2 h-4 w-4"/>Resources</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="roadmap" className="mt-8">
+                {renderSection(<School />, "Plan for College", "Get a personalized roadmap to help you get into your dream college. Just fill out the form below to get started.", 
+                    <Card>
+                        <CardContent className="pt-6">
+                            <Form {...schoolForm}>
+                            <form onSubmit={schoolForm.handleSubmit(onSchoolSubmit)} className="space-y-6">
+                                <FormField control={schoolForm.control} name="academicBackground" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Current Grade & Subjects</FormLabel>
+                                    <FormControl>
+                                    <Textarea placeholder="e.g., Class 11, Science with Physics, Chemistry, Math" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )} />
+                                <div className="grid md:grid-cols-2 gap-6">
+                                <FormField control={schoolForm.control} name="interests" render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Subjects of Interest</FormLabel>
+                                    <FormControl><Input placeholder="e.g., Computer Science, Biology" {...field} /></FormControl>
+                                    <FormDescription>Separate with commas.</FormDescription>
+                                    <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <FormField control={schoolForm.control} name="target" render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Target Colleges or Courses</FormLabel>
+                                    <FormControl><Input placeholder="e.g., IIT, AIIMS, Ivy League" {...field} /></FormControl>
+                                    <FormDescription>What's your dream school?</FormDescription>
+                                    <FormMessage />
+                                    </FormItem>
+                                )} />
+                                </div>
+                                <FormField control={schoolForm.control} name="learningStyle" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Preferred Learning Style</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Select your learning style" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Visual">Visual</SelectItem>
+                                        <SelectItem value="Auditory">Auditory</SelectItem>
+                                        <SelectItem value="Reading/Writing">Reading/Writing</SelectItem>
+                                        <SelectItem value="Kinesthetic">Kinesthetic</SelectItem>
+                                    </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                                )} />
+                                <Button type="submit" size="lg" disabled={isPending} className="w-full">
+                                {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Building Plan...</> : <><Route className="mr-2" /> Generate College Prep Plan</>}
+                                </Button>
+                            </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+                )}
+                
+                {renderSchoolResults()}
+            </TabsContent>
             
-            {renderSchoolResults()}
-        </div>
+            <TabsContent value="resources" className="mt-8">
+                <CollegeSuggester />
+            </TabsContent>
+        </Tabs>
     )
 }

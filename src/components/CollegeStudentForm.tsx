@@ -4,7 +4,7 @@ import React, { useState, useTransition, type FC, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { BrainCircuit, Briefcase, Target, GraduationCap, Lightbulb, BookOpen, ChevronRight, Loader2, Compass, CheckCircle2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square, Volume2 } from 'lucide-react';
+import { BrainCircuit, Briefcase, Target, GraduationCap, Lightbulb, BookOpen, ChevronRight, Loader2, Compass, CheckCircle2, ListTodo, Route, School, Music, PlayCircle, PauseCircle, Square, Volume2, Library } from 'lucide-react';
 import { careerPathRecommendation, type CareerPathRecommendationOutput } from '@/ai/flows/career-path-recommendation';
 import { analyzeSkillGaps, type AnalyzeSkillGapsOutput } from '@/ai/flows/skill-gap-analysis';
 import { generateRoadmap, type GenerateRoadmapOutput } from '@/ai/flows/personalized-roadmap-generation';
@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PointerHighlight } from './ui/pointer-highlight';
+import { CollegeSuggester } from './CollegeSuggester';
+import { CompanySuggester } from './CompanySuggester';
 
 const profileFormSchema = z.object({
   academicBackground: z.string().min(10, 'Please provide more details.'),
@@ -388,9 +390,10 @@ export const CollegeStudentForm: FC = () => {
 
     return (
         <Tabs defaultValue="my-path" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="my-path"><BrainCircuit className="mr-2 h-4 w-4"/>My Career Path</TabsTrigger>
                 <TabsTrigger value="explore"><Compass className="mr-2 h-4 w-4"/>Explore Careers</TabsTrigger>
+                <TabsTrigger value="resources"><Library className="mr-2 h-4 w-4"/>Resources</TabsTrigger>
             </TabsList>
             
             <TabsContent value="my-path" className="mt-8">
@@ -515,6 +518,12 @@ export const CollegeStudentForm: FC = () => {
                 )}
 
                 {renderExplorerResults()}
+            </TabsContent>
+            <TabsContent value="resources" className="mt-8">
+                <div className="space-y-8">
+                    <CollegeSuggester />
+                    <CompanySuggester />
+                </div>
             </TabsContent>
         </Tabs>
     )
