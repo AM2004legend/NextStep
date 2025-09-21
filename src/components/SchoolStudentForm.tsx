@@ -236,3 +236,5 @@ export const SchoolStudentForm: FC = () => {
         </Tabs>
     )
 }
+
+    
