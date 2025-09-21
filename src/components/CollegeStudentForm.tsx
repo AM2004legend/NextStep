@@ -76,31 +76,30 @@ const Flowchart: React.FC<FlowchartProps> = ({ milestones, title }) => {
       
 
     return (
-        <div className="relative pt-6">
-            <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-border" />
+        <Accordion type="single" collapsible className="w-full space-y-2">
             {milestones.map((milestone, index) => (
-                <div key={milestone.month} className="relative mb-8">
-                    <div className="absolute left-1/2 -translate-x-1/2 -top-1 w-3 h-3 rounded-full bg-primary" />
-                    <Card className={`md:w-10/12 mx-auto ${index % 2 === 0 ? 'md:mr-auto' : 'md:ml-auto'}`}>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                        <CardTitle><PointerHighlight>Month {milestone.month}: {milestone.title}</PointerHighlight></CardTitle>
-                        <Button variant="ghost" size="icon" onClick={() => speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `month-${milestone.month}`)}>
+                <AccordionItem value={`item-${index}`} key={milestone.month} className="border-b-0">
+                    <AccordionTrigger className="p-4 bg-primary/5 hover:bg-primary/10 rounded-lg justify-between">
+                        <div className="flex items-center gap-4 text-left">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold">{milestone.month}</div>
+                            <div className="flex flex-col">
+                                <span className='font-bold text-base text-left'>{milestone.title}</span>
+                            </div>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `month-${milestone.month}`)}}>
                             {speakingId === `month-${milestone.month}` ? <PauseCircle /> : <PlayCircle />}
                         </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-4 space-y-4">
                         <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                         {milestone.tasks.map((task, i) => (
-                            <li key={i}>{task}</li>
+                            <li key={i} dangerouslySetInnerHTML={{ __html: task.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>') }}></li>
                         ))}
                         </ul>
-                    </CardContent>
-                    </Card>
-                </div>
+                    </AccordionContent>
+                </AccordionItem>
             ))}
-        </div>
+        </Accordion>
     )
 }
 
@@ -490,3 +489,5 @@ export const CollegeStudentForm: FC = () => {
         </Tabs>
     )
 }
+
+    
