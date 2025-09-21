@@ -33,10 +33,9 @@ type SchoolFormValues = z.infer<typeof schoolFormSchema>;
 interface FlowchartProps {
     milestones: GenerateSchoolRoadmapOutput['milestones'];
     title: string;
-    isAuditory: boolean;
 }
   
-const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) => {
+const Flowchart: React.FC<FlowchartProps> = ({ milestones, title }) => {
     const [speakingId, setSpeakingId] = useState<string | null>(null);
 
     const speak = (text: string, id: string) => {
@@ -47,6 +46,9 @@ const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) 
           setSpeakingId(null);
           return;
         }
+        
+        // Cancel any previous speech
+        window.speechSynthesis.cancel();
       
         setSpeakingId(id);
         const utterance = new SpeechSynthesisUtterance(text);
@@ -66,11 +68,9 @@ const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) 
                     <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle><PointerHighlight>Quarter {milestone.quarter}: {milestone.title}</PointerHighlight></CardTitle>
-                        {isAuditory && (
-                            <Button variant="ghost" size="icon" onClick={() => speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `quarter-${milestone.quarter}`)}>
-                                {speakingId === `quarter-${milestone.quarter}` ? <PauseCircle /> : <PlayCircle />}
-                            </Button>
-                        )}
+                        <Button variant="ghost" size="icon" onClick={() => speak(`Quarter ${milestone.quarter}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `quarter-${milestone.quarter}`)}>
+                            {speakingId === `quarter-${milestone.quarter}` ? <PauseCircle /> : <PlayCircle />}
+                        </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -94,15 +94,14 @@ export const SchoolStudentForm: FC = () => {
     const [schoolRoadmap, setSchoolRoadmap] = useState<GenerateSchoolRoadmapOutput | null>(null);
     const [schoolProfile, setSchoolProfile] = useState<SchoolFormValues | null>(null);
     
-    const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
-
     useEffect(() => {
         return () => {
-          if (activeAudio) {
-            activeAudio.pause();
-          }
+            // Cleanup speech synthesis on component unmount
+            if (typeof window !== 'undefined' && ('speechSynthesis' in window)) {
+                window.speechSynthesis.cancel();
+            }
         };
-      }, [activeAudio]);
+      }, []);
 
     const schoolForm = useForm<SchoolFormValues>({
         resolver: zodResolver(schoolFormSchema),
@@ -151,40 +150,10 @@ export const SchoolStudentForm: FC = () => {
         }
         
         if (schoolRoadmap && schoolProfile) {
-            const isAuditory = schoolProfile.learningStyle === 'Auditory';
             return (
                 <div className="mt-12">
                     {renderSection(<ListTodo />, "Your College Prep Plan", "Here is your actionable plan to get into your dream college.",
-                        <Tabs defaultValue={isAuditory ? "audio" : "visual"}>
-                            <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="visual">Visual Roadmap</TabsTrigger>
-                                <TabsTrigger value="audio" disabled={!isAuditory}>Audio Guide</TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="visual" className="mt-6">
-                                <Flowchart milestones={schoolRoadmap.milestones} title="College Prep Timeline" isAuditory={isAuditory}/>
-                            </TabsContent>
-                            <TabsContent value="audio" className="mt-6">
-                                <Card>
-                                    <CardHeader><CardTitle><PointerHighlight>Audio Guide</PointerHighlight></CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
-                                    <CardContent>
-                                    <Accordion type="single" collapsible className="w-full">
-                                        {schoolRoadmap.milestones.map((milestone) => (
-                                        <AccordionItem key={milestone.quarter} value={`item-${milestone.quarter}`}>
-                                            <AccordionTrigger className="text-lg">Quarter {milestone.quarter}: {milestone.title}</AccordionTrigger>
-                                            <AccordionContent>
-                                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                                                {milestone.tasks.map((task, index) => (
-                                                <li key={index}>{task}</li>
-                                                ))}
-                                            </ul>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                        ))}
-                                    </Accordion>
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                        </Tabs>
+                        <Flowchart milestones={schoolRoadmap.milestones} title="College Prep Timeline"/>
                     )}
                 </div>
             );

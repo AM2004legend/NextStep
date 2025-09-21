@@ -22,7 +22,7 @@ export type GenerateSchoolRoadmapInput = z.infer<typeof GenerateSchoolRoadmapInp
 const SchoolRoadmapMilestoneSchema = z.object({
   quarter: z.number().describe("The quarter number for this milestone (e.g., 1 for Quarter 1)."),
   title: z.string().describe("A short, descriptive title for the milestone (e.g., 'Foundation Building')."),
-  tasks: z.array(z.string()).describe("A list of specific tasks, subjects to focus on, or exams to prepare for."),
+  tasks: z.array(z.string()).describe("A list of specific, detailed tasks, subjects to focus on, or exams to prepare for, including links to free resources."),
 });
 
 
@@ -43,7 +43,9 @@ const textPrompt = ai.definePrompt({
   prompt: `You are an expert academic advisor for high school students aiming for top colleges in India and abroad.
 
   Based on the student's profile and learning style, generate a 6-12 month actionable roadmap for college entrance preparation.
-  The roadmap should be broken down into quarterly milestones. Each milestone should have a title and a list of specific actions, subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), and recommended study resources.
+  The roadmap should be broken down into quarterly milestones. Each milestone should have a title and a list of specific, detailed actions, subjects to focus on, entrance exams to prepare for (like JEE, NEET, SAT, etc.), and recommended study resources.
+
+  For each task, you MUST provide guidance and links to high-quality, FREE resources (e.g., articles, YouTube videos, practice test sites).
 
   Crucially, you MUST tailor the recommended study resources and tasks to the student's learning style.
   - For Visual learners, suggest video lectures, visual aids like charts and diagrams, and platforms like Khan Academy or YouTube.

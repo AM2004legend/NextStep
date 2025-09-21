@@ -49,17 +49,9 @@ type ExplorerFormValues = z.infer<typeof explorerFormSchema>;
 interface FlowchartProps {
   milestones: GenerateRoadmapOutput['milestones'];
   title: string;
-  isAuditory: boolean;
 }
 
-const quarterColors = [
-    "bg-primary/5",
-    "bg-accent/80",
-    "bg-secondary",
-    "bg-muted",
-];
-
-const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) => {
+const Flowchart: React.FC<FlowchartProps> = ({ milestones, title }) => {
     const [speakingId, setSpeakingId] = useState<string | null>(null);
 
     const speak = (text: string, id: string) => {
@@ -70,6 +62,9 @@ const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) 
           setSpeakingId(null);
           return;
         }
+      
+        // Cancel any previous speech
+        window.speechSynthesis.cancel();
       
         setSpeakingId(id);
         const utterance = new SpeechSynthesisUtterance(text);
@@ -90,11 +85,9 @@ const Flowchart: React.FC<FlowchartProps> = ({ milestones, title, isAuditory }) 
                     <CardHeader>
                         <div className="flex items-center justify-between">
                         <CardTitle><PointerHighlight>Month {milestone.month}: {milestone.title}</PointerHighlight></CardTitle>
-                        {isAuditory && (
-                            <Button variant="ghost" size="icon" onClick={() => speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `month-${milestone.month}`)}>
-                                {speakingId === `month-${milestone.month}` ? <PauseCircle /> : <PlayCircle />}
-                            </Button>
-                        )}
+                        <Button variant="ghost" size="icon" onClick={() => speak(`Month ${milestone.month}: ${milestone.title}. Tasks: ${milestone.tasks.join('. ')}`, `month-${milestone.month}`)}>
+                            {speakingId === `month-${milestone.month}` ? <PauseCircle /> : <PlayCircle />}
+                        </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -127,15 +120,14 @@ export const CollegeStudentForm: FC = () => {
     
     const [exploredCareers, setExploredCareers] = useState<CareerPathExplorationOutput | null>(null);
     
-    const [activeAudio, setActiveAudio] = useState<HTMLAudioElement | null>(null);
-
     useEffect(() => {
         return () => {
-          if (activeAudio) {
-            activeAudio.pause();
+          // Cleanup speech synthesis on component unmount
+          if (typeof window !== 'undefined' && ('speechSynthesis' in window)) {
+            window.speechSynthesis.cancel();
           }
         };
-      }, [activeAudio]);
+      }, []);
 
   
     const profileForm = useForm<ProfileFormValues>({
@@ -315,38 +307,8 @@ export const CollegeStudentForm: FC = () => {
       }
     
       if (roadmap && selectedCareer && profile) {
-        const isAuditory = profile.learningStyle === 'Auditory';
         return renderSection(<ListTodo />, "Your Personalized Roadmap", "Here is your actionable plan to becoming a successful " + selectedCareer, 4,
-          <Tabs defaultValue={isAuditory ? "audio" : "visual"}>
-            <TabsList>
-              <TabsTrigger value="visual">Visual Roadmap</TabsTrigger>
-              <TabsTrigger value="audio" disabled={!isAuditory}>Audio Guide</TabsTrigger>
-            </TabsList>
-            <TabsContent value="visual">
-                <Flowchart milestones={roadmap.milestones} title={`Roadmap to ${selectedCareer}`} isAuditory={isAuditory} />
-            </TabsContent>
-            <TabsContent value="audio">
-                <Card>
-                    <CardHeader><CardTitle><PointerHighlight>Audio Guide</PointerHighlight></CardTitle><CardDescription>Listen to your personalized roadmap.</CardDescription></CardHeader>
-                    <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                        {roadmap.milestones.map((milestone) => (
-                        <AccordionItem key={milestone.month} value={`item-${milestone.month}`}>
-                            <AccordionTrigger className="text-lg">Month {milestone.month}: {milestone.title}</AccordionTrigger>
-                            <AccordionContent>
-                            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                                {milestone.tasks.map((task, index) => (
-                                <li key={index}>{task}</li>
-                                ))}
-                            </ul>
-                            </AccordionContent>
-                        </AccordionItem>
-                        ))}
-                    </Accordion>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-          </Tabs>
+          <Flowchart milestones={roadmap.milestones} title={`Roadmap to ${selectedCareer}`} />
         );
       }
     

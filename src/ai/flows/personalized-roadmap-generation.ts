@@ -26,7 +26,7 @@ export type GenerateRoadmapInput = z.infer<typeof GenerateRoadmapInputSchema>;
 const RoadmapMilestoneSchema = z.object({
   month: z.number().describe("The month number for this milestone (e.g., 1)."),
   title: z.string().describe("A short, descriptive title for the milestone."),
-  tasks: z.array(z.string()).describe("A list of specific tasks or actions for this milestone."),
+  tasks: z.array(z.string()).describe("A list of specific, detailed tasks or actions for this milestone, including links to free resources like articles, tutorials, or projects."),
 });
 
 const GenerateRoadmapOutputSchema = z.object({
@@ -45,8 +45,10 @@ const prompt = ai.definePrompt({
   output: {schema: z.object({ milestones: z.array(RoadmapMilestoneSchema) })},
   prompt: `You are a career coach expert in the Indian and global job markets.
 
-  Based on the student profile, chosen career path, current skills, identified skill gaps, and learning style, generate a 6-12 month actionable roadmap for the student.
-  The roadmap should be broken down into monthly milestones. Each milestone should have a title and a list of specific tasks, resources (courses, certifications, projects).
+  Based on the student profile, chosen career path, current skills, identified skill gaps, and learning style, generate a 6-12 month actionable roadmap.
+  The roadmap should be broken down into monthly milestones. Each milestone should have a title and a list of specific, detailed tasks.
+  
+  For each task, you MUST provide guidance and links to high-quality, FREE resources (e.g., articles, YouTube videos, GitHub projects, free courses).
 
   Crucially, you MUST tailor the recommended resources and tasks to the student's learning style.
   - For Visual learners, suggest video tutorials, diagrams, mind maps, and visual-heavy courses.
