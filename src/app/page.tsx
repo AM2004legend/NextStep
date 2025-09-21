@@ -6,20 +6,12 @@ import { GraduationCap, School } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { CollegeStudentForm } from '@/components/CollegeStudentForm';
 import { SchoolStudentForm } from '@/components/SchoolStudentForm';
 import { PointerHighlight } from '@/components/ui/pointer-highlight';
 import { ClientOnly } from '@/components/ClientOnly';
 
 export default function Home() {
-  const scrollToContent = () => {
-    const content = document.getElementById('content');
-    if (content) {
-      content.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-  
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-body">
        <header className="p-4 bg-background fixed top-0 w-full z-20 border-b">
@@ -49,9 +41,6 @@ export default function Home() {
             <p className="text-muted-foreground max-w-2xl mx-auto mt-4 text-lg">
               Navigate your future with confidence. Let's build your roadmap to success, one step at a time.
             </p>
-            <div className="mt-8">
-              <Button size="lg" onClick={scrollToContent} className="font-headline font-bold">Get Started</Button>
-            </div>
           </div>
         </div>
 
